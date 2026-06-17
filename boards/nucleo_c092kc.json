@@ -15,8 +15,6 @@
         "onboard_tools": [
             "stlink"
         ],
-        "openocd_board": "st_nucleo_c0",
-        "openocd_target": "stm32c0x",
         "svd_path": "STM32C092.svd"
     },
     "frameworks": [
