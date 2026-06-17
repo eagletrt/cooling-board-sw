@@ -8,7 +8,7 @@
 #define BOOT_CPU_XTAL_SPEED_KHZ (16000)
 
 /* System clock frequency (typical STM32C0 max ~48 MHz). */
-#define BOOT_CPU_SYSTEM_SPEED_KHZ (12000)
+#define BOOT_CPU_SYSTEM_SPEED_KHZ (48000)
 
 /* STM32C0 is little endian. */
 #define BOOT_CPU_BYTE_ORDER_MOTOROLA (0)
