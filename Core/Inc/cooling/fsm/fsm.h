@@ -15,7 +15,6 @@ Functions and types have been generated with prefix "fsm_"
 
 ******************************************************************************/
 
-
 #ifndef FSM_H
 #define FSM_H
 #ifdef __cplusplus
@@ -32,12 +31,12 @@ typedef void fsm_state_data_t;
 
 // List of states
 typedef enum {
-  FSM_STATE_INIT = 0,  
-  FSM_STATE_IDLE,  
-  FSM_STATE_ERROR,  
-  FSM_STATE_FLASH,  
-  FSM_NUM_STATES,
-  FSM_NO_CHANGE
+    FSM_STATE_INIT = 0,
+    FSM_STATE_IDLE,
+    FSM_STATE_ERROR,
+    FSM_STATE_FLASH,
+    FSM_NUM_STATES,
+    FSM_NO_CHANGE
 } fsm_state_t;
 
 // State human-readable names
@@ -61,10 +60,8 @@ fsm_state_t fsm_do_error(fsm_state_data_t *data);
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_FLASH, FSM_STATE_ERROR
 fsm_state_t fsm_do_flash(fsm_state_data_t *data);
 
-
 // List of state functions
 extern state_func_t *const fsm_state_table[FSM_NUM_STATES];
-
 
 // Transition functions
 void fsm_init_done(fsm_state_data_t *data);
