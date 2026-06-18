@@ -27,6 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "fsm.h"
 
 /* USER CODE END Includes */
 
@@ -48,6 +49,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+fsm_state_t current_state = FSM_STATE_INIT;
 
 /* USER CODE END PV */
 
@@ -102,6 +104,8 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
+        current_state = fsm_run_state(current_state, nullptr);
+
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
