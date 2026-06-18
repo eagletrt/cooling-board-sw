@@ -1,0 +1,20 @@
+/*!
+ * \file post.h
+ * \author Thomas Moretti [majorfrost173@gmail.com]
+ * \date 2026-06-18
+ * \brief Module dedicated to running a power-on self-test (POST)
+ */
+
+#ifndef POST_H
+#define POST_H
+
+/*!
+ * \brief Return codes for the POST module APIs
+ */
+enum PostReturnCode {
+    POST_RC_OK = 0,               /*!< POST executed succesfully */
+    POST_RC_UNINITIALIZED_MODULE, /*!< A module failed to be initalized during POST */
+    POST_RC_ERROR                 /*!< POST encountered an error */
+};
+
+#endif // POST_H
