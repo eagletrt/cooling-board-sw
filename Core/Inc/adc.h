@@ -36,6 +36,8 @@ extern ADC_HandleTypeDef hadc1;
 
 /* USER CODE BEGIN Private defines */
 
+constexpr size_t ADC_CHANNEL_COUNT = 9U;
+
 /* USER CODE END Private defines */
 
 void MX_ADC1_Init(void);
