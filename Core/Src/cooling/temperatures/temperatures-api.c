@@ -26,6 +26,8 @@ EAGLETRT_STATIC bool prv_temperatures_is_temperature_name_valid(enum Temperature
         case TEMPERATURES_FRONT_LEFT_MOTOR_EXIT_TEMPERATURE:
         case TEMPERATURES_REAR_LEFT_MOTOR_EXIT_TEMPERATURE:
         case TEMPERATURES_LEFT_RADIATOR_EXIT_TEMPERATURE:
+        case TEMPERATURES_TSAC_TEMPERATURE:
+        case TEMPERATURES_INVERTER_TEMPERATURE:
             return true;
         default:
             return false;
