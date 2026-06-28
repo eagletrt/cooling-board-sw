@@ -17,6 +17,14 @@ Functions and types have been generated with prefix "fsm_"
 
 #include "fsm.h"
 
+/* USER CODE BEGIN Includes */
+
+#include "adc.h"
+#include "post-api.h"
+#include "post.h"
+
+/* USER CODE END Includes */
+
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
 // GLOBALS
@@ -59,6 +67,10 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_STATE_IDLE;
     /* Your Code Here */
 
+    const enum PostReturnCode post_return_code = post_api_run();
+
+    next_state = (post_return_code == POST_RC_OK) ? FSM_STATE_IDLE : FSM_STATE_ERROR;
+
     switch (next_state) {
         case FSM_STATE_IDLE:
         case FSM_STATE_ERROR:
@@ -75,6 +87,7 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
 fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
+    adc_start_conversion();
 
     switch (next_state) {
         case FSM_NO_CHANGE:

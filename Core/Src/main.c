@@ -21,6 +21,7 @@
 #include "adc.h"
 #include "dma.h"
 #include "fdcan.h"
+#include "stm32c0xx_hal_adc_ex.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -94,6 +95,7 @@ int main(void) {
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_ADC1_Init();
+    HAL_ADCEx_Calibration_Start(&hadc1);
     MX_FDCAN1_Init();
     MX_TIM3_Init();
     MX_USART1_UART_Init();

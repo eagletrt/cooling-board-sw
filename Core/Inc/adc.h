@@ -57,6 +57,12 @@ void MX_ADC1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
+/*!
+ * \brief Begin an ADC conversion
+ * \note Once the conversion is over, HAL_ADC_ConvCpltCallback is triggered
+ */
+void adc_start_conversion(void);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
