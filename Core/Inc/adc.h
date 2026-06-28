@@ -37,6 +37,19 @@ extern ADC_HandleTypeDef hadc1;
 /* USER CODE BEGIN Private defines */
 
 constexpr size_t ADC_CHANNEL_COUNT = 9U;
+constexpr size_t ADC_TEMPERATURES_COUNT = 8U;
+
+constexpr float ADC_VOLTAGE_REFERENCE = 3.3F;
+constexpr uint16_t ADC_MAX_VALUE = 4095U;
+
+constexpr unsigned int PULLUP_RESISTANCE_OHM = 10000U;
+constexpr unsigned int NTC_REFERENCE_RESISTANCE_OHM = 10000U;
+constexpr unsigned int NTC_BETA_COEFFICIENT = 3950U;
+
+constexpr float NTC_REFERENCE_TEMPERATURE_KELVIN = 298.15F;
+constexpr float ZERO_CELSIUS_IN_KELVIN = 273.15F;
+constexpr float NTC_MIN_TEMPERATURE_CELSIUS = -55.0F;
+constexpr float NTC_MAX_TEMPERATURE_CELSIUS = 150.0F;
 
 /* USER CODE END Private defines */
 

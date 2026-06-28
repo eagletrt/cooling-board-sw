@@ -22,6 +22,7 @@
 #include "eagletrt-api.h"
 #include "temperatures-api.h"
 #include <stddef.h>
+#include <math.h>
 
 /* USER CODE BEGIN 0 */
 
@@ -229,9 +230,18 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
 
 EAGLETRT_STATIC EAGLETRT_VOLATILE uint16_t adc_raw_data[ADC_CHANNEL_COUNT];
 
+/*!
+ * \brief Convert a temperature from the ADC buffer into celsius, according to the Steinhart-Hart equation (B parameter)
+ *
+ * \param[in] raw The raw value from the ADC buffer
+ * \return The converted temperature, in celsius
+ */
 EAGLETRT_STATIC_INLINE float prv_adc_convert_raw_to_celsius(uint16_t raw) {
-    // FIXME: this is a temporary placeholder as conversion forumlas may vary based on the specific sensor used
-    return raw * .0F;
+    float voltage = (raw * ADC_VOLTAGE_REFERENCE) / ADC_MAX_VALUE;
+    float ntc_resistance = PULLUP_RESISTANCE_OHM * voltage / (ADC_VOLTAGE_REFERENCE - voltage);
+    float tempearture_kelvin = 1.0f / (1.0f / NTC_REFERENCE_TEMPERATURE_KELVIN + (1.0f / NTC_BETA_COEFFICIENT) * logf(ntc_resistance / NTC_REFERENCE_RESISTANCE_OHM));
+
+    return tempearture_kelvin - ZERO_CELSIUS_IN_KELVIN;
 }
 
 void adc_start_conversion(void) {
@@ -240,13 +250,9 @@ void adc_start_conversion(void) {
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     if (hadc->Instance == ADC1) {
-        float converted_temperatures[TEMPERATURES_COUNT];
-
-        for (size_t temperature_index = 0U; temperature_index < TEMPERATURES_COUNT; ++temperature_index) {
-            converted_temperatures[temperature_index] = prv_adc_convert_raw_to_celsius(adc_raw_data[temperature_index]);
+        for (size_t temperature_index = 0U; temperature_index < ADC_TEMPERATURES_COUNT; ++temperature_index) {
+            temperatures_api_set_temperature(temperature_index, prv_adc_convert_raw_to_celsius(adc_raw_data[temperature_index]));
         }
-
-        temperatures_api_set_temperatures(converted_temperatures);
     }
 }
 
