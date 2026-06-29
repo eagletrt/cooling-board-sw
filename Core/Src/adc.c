@@ -228,7 +228,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
 
 /* USER CODE BEGIN 1 */
 
-EAGLETRT_STATIC EAGLETRT_VOLATILE uint16_t adc_raw_data[ADC_CHANNEL_COUNT];
+EAGLETRT_STATIC EAGLETRT_VOLATILE uint16_t adc_raw_data[adc_channel_count];
 
 /*!
  * \brief Convert a temperature from the ADC buffer into celsius, according to the Steinhart-Hart equation (B parameter)
@@ -237,20 +237,20 @@ EAGLETRT_STATIC EAGLETRT_VOLATILE uint16_t adc_raw_data[ADC_CHANNEL_COUNT];
  * \return The converted temperature, in celsius
  */
 EAGLETRT_STATIC_INLINE float prv_adc_convert_raw_to_celsius(uint16_t raw) {
-    float voltage = (raw * ADC_VOLTAGE_REFERENCE) / ADC_MAX_VALUE;
-    float ntc_resistance = PULLUP_RESISTANCE_OHM * voltage / (ADC_VOLTAGE_REFERENCE - voltage);
-    float tempearture_kelvin = 1.0f / (1.0f / NTC_REFERENCE_TEMPERATURE_KELVIN + (1.0f / NTC_BETA_COEFFICIENT) * logf(ntc_resistance / NTC_REFERENCE_RESISTANCE_OHM));
+    float voltage = (raw * adc_voltage_reference) / adc_max_value;
+    float ntc_resistance = pullup_resistance_ohm * voltage / (adc_voltage_reference - voltage);
+    float tempearture_kelvin = 1.0f / (1.0f / ntc_reference_temperature_kelvin + (1.0f / ntc_beta_coefficient) * logf(ntc_resistance / ntc_reference_resistance_ohm));
 
-    return tempearture_kelvin - ZERO_CELSIUS_IN_KELVIN;
+    return tempearture_kelvin - zero_celsius_in_kelvin;
 }
 
 void adc_start_conversion(void) {
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_raw_data, ADC_CHANNEL_COUNT);
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_raw_data, adc_channel_count);
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     if (hadc->Instance == ADC1) {
-        for (size_t temperature_index = 0U; temperature_index < ADC_TEMPERATURES_COUNT; ++temperature_index) {
+        for (size_t temperature_index = 0U; temperature_index < adc_temperatures_count; ++temperature_index) {
             temperatures_api_set_temperature(temperature_index, prv_adc_convert_raw_to_celsius(adc_raw_data[temperature_index]));
         }
     }

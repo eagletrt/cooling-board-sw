@@ -25,14 +25,14 @@ enum TemperaturesReturnCode temperatures_api_init(void);
 const float *temperatures_api_get_temperatures(void);
 
 /*!
- * \brief Set the temperatures buffer contained in the handler
+ * \brief Set the temperatures buffer contained in the handler by copying over the values from an array taken as a parameter
  *
- * \param[in] temperatures A pointer to an buffer containing the temperatures, assumed to be TEMPERATURES_COUNT in length
+ * \param[in] temperatures A pointer to an buffer containing the temperatures, assumed to be TEMPERATURES_NAME_COUNT in length
  *
  * \retval TEMPERATURES_RC_NULL_POINTER if the provided buffer is null
  * \retval TEMPERATURES_RC_OK if the values of the input buffer are successfully transferred to the buffer of the handler
  */
-enum TemperaturesReturnCode temperatures_api_set_temperatures(const float *temperatures);
+enum TemperaturesReturnCode temperatures_api_set_temperatures(const float temperatures[TEMPERATURES_NAME_COUNT]);
 
 /*!
  * \brief Get the value of one of the temperatures contained in the buffer of the handler
