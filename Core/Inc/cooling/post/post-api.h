@@ -18,12 +18,4 @@
  */
 enum PostReturnCode post_api_run(void);
 
-/*!
- * \brief Initializes all the modules
- *
- * \retval POST_RC_OK if all the modules have been initialized succesfully
- * \retval POST_RC_ERROR if any module was not able to initialize succesfully
- */
-enum PostReturnCode post_api_modules_init(void);
-
 #endif // POST_API_H
