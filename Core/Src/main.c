@@ -95,11 +95,11 @@ int main(void) {
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_ADC1_Init();
-    HAL_ADCEx_Calibration_Start(&hadc1);
     MX_FDCAN1_Init();
     MX_TIM3_Init();
     MX_USART1_UART_Init();
     /* USER CODE BEGIN 2 */
+    HAL_ADCEx_Calibration_Start(&hadc1);
 
     /* USER CODE END 2 */
 
