@@ -26,6 +26,21 @@
 
 /* USER CODE BEGIN 0 */
 
+constexpr size_t adc_channel_count = 9U;
+constexpr size_t adc_temperatures_count = 8U;
+
+constexpr float adc_voltage_reference = 3.3F;
+constexpr uint16_t adc_max_value = 4095U;
+
+constexpr unsigned int pullup_resistance_ohm = 10000U;
+constexpr unsigned int ntc_reference_resistance_ohm = 10000U;
+constexpr unsigned int ntc_beta_coefficient = 3950U;
+
+constexpr float ntc_reference_temperature_kelvin = 298.15F;
+constexpr float zero_celsius_in_kelvin = 273.15F;
+constexpr float ntc_min_temperature_celsius = -55.0F;
+constexpr float ntc_max_temperature_celsius = 150.0F;
+
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -235,13 +250,18 @@ EAGLETRT_STATIC EAGLETRT_VOLATILE uint16_t adc_raw_data[adc_channel_count];
  *
  * \param[in] raw The raw value from the ADC buffer
  * \return The converted temperature, in celsius
+ * \note If the voltage is 3.3 (raw is adc_max_value), the returned temperature is ntc_min_temperature_celsius (-55.0)
  */
 EAGLETRT_STATIC_INLINE float prv_adc_convert_raw_to_celsius(uint16_t raw) {
     float voltage = (raw * adc_voltage_reference) / adc_max_value;
-    float ntc_resistance = pullup_resistance_ohm * voltage / (adc_voltage_reference - voltage);
-    float tempearture_kelvin = 1.0f / (1.0f / ntc_reference_temperature_kelvin + (1.0f / ntc_beta_coefficient) * logf(ntc_resistance / ntc_reference_resistance_ohm));
+    if (voltage <= 3.3F) {
+        return ntc_min_temperature_celsius;
+    }
 
-    return tempearture_kelvin - zero_celsius_in_kelvin;
+    float ntc_resistance = pullup_resistance_ohm * voltage / (adc_voltage_reference - voltage);
+    float tempearture_kelvin = 1.0F / (1.0F / ntc_reference_temperature_kelvin + (1.0F / ntc_beta_coefficient) * logf(ntc_resistance / ntc_reference_resistance_ohm));
+
+    return EAGLETRT_API_CLAMP(tempearture_kelvin - zero_celsius_in_kelvin, ntc_min_temperature_celsius, ntc_max_temperature_celsius);
 }
 
 void adc_start_conversion(void) {
