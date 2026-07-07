@@ -9,12 +9,13 @@
 #define TEMPERATURES_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 /*!
  * \brief Return codes for the temperatures module functions
  */
-enum TemperaturesReturnCode {
-    TEMPERATURES_RC_OK = 0,       /*!< The function executed succesfully */
+enum TemperaturesReturnCode : uint8_t {
+    TEMPERATURES_RC_OK,           /*!< The function executed succesfully */
     TEMPERATURES_RC_NULL_POINTER, /*!< An argument of pointer type was null or a null pointer was used inside the function */
     TEMPERATURES_RC_INVALID_NAME, /*!< The name of the temperature that was provided is not valid */
     TEMPERATURES_RC_ERROR         /*!< The function encountered an error */
@@ -23,7 +24,7 @@ enum TemperaturesReturnCode {
 /*!
  * \brief Names for the temperatures read, one from each of the sensors
  */
-enum TemperaturesName {
+enum TemperaturesName : uint8_t {
     TEMPERATURES_NAME_RIGHT_PUMP_EXIT_TEMPERATURE,
     TEMPERATURES_NAME_FRONT_RIGHT_MOTOR_EXIT_TEMPERATURE,
     TEMPERATURES_NAME_REAR_RIGHT_MOTOR_EXIT_TEMPERATURE,
