@@ -21,7 +21,6 @@ Functions and types have been generated with prefix "fsm_"
 
 #include "adc.h"
 #include "post-api.h"
-#include "post.h"
 
 /* USER CODE END Includes */
 
@@ -87,7 +86,11 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
 fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
-    adc_start_conversion();
+    if (data == nullptr) {
+        return FSM_STATE_ERROR;
+    }
+    struct FsmIdleData *idle_struct = (struct FsmIdleData *)data;
+    idle_struct->start_conversion();
 
     switch (next_state) {
         case FSM_NO_CHANGE:

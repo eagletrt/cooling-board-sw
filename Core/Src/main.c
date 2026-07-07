@@ -106,7 +106,11 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        current_state = fsm_run_state(current_state, nullptr);
+        struct FsmIdleData data = {
+            .start_conversion = adc_start_conversion,
+        };
+
+        current_state = fsm_run_state(current_state, &data);
 
         /* USER CODE END WHILE */
 
