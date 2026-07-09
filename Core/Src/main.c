@@ -21,7 +21,6 @@
 #include "adc.h"
 #include "dma.h"
 #include "fdcan.h"
-#include "stm32c0xx_hal_adc_ex.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
