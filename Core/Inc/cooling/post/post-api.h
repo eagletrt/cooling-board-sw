@@ -15,6 +15,6 @@
  *
  * \retval POST_RC_OK if POST has been able to complete succesfully
  */
-enum PostReturnCode post_api_run(void);
+enum PostReturnCode post_api_run(struct PostInitData *post_init_data);
 
 #endif // POST_API_H

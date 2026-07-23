@@ -27,7 +27,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #include "fsm.h"
+#include "post.h"
+#include "can-communication-router-api.h"
 
 /* USER CODE END Includes */
 
@@ -98,6 +101,19 @@ int main(void) {
     MX_TIM3_Init();
     MX_USART1_UART_Init();
     /* USER CODE BEGIN 2 */
+
+    struct PostInitData post_init_data = {
+        .can_network_configurations = {
+            [CAN_COMMUNICATION_NETWORK_PRIMARY] = {
+                .cs_enter = __disable_irq,
+                .cs_exit = __enable_irq,
+                .on_receive = can_communication_router_api_receive_primary,
+                .send = fdcan_send_primary,
+            },
+        },
+    };
+
+    current_state = fsm_run_state(current_state, &post_init_data);
 
     /* USER CODE END 2 */
 

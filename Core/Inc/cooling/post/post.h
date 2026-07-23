@@ -8,6 +8,8 @@
 #ifndef POST_H
 #define POST_H
 
+#include "can-communication.h"
+
 /*!
  * \brief Return codes for the POST module APIs
  */
@@ -15,6 +17,10 @@ enum PostReturnCode {
     POST_RC_OK = 0,               /*!< POST executed succesfully */
     POST_RC_UNINITIALIZED_MODULE, /*!< A module failed to be initalized during POST */
     POST_RC_ERROR                 /*!< POST encountered an error */
+};
+
+struct PostInitData {
+    struct CanCommunicationNetworkConfig can_network_configurations[CAN_COMMUNICATION_NETWORK_COUNT];
 };
 
 #endif // POST_H
