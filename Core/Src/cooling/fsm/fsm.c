@@ -16,6 +16,8 @@ Functions and types have been generated with prefix "fsm_"
 ******************************************************************************/
 
 #include "fsm.h"
+#include "can-communication-api.h"
+#include "post-api.h"
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
@@ -59,6 +61,12 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_STATE_IDLE;
     /* Your Code Here */
 
+    struct PostInitData *post_init_data = (struct PostInitData *)data;
+
+    if (post_api_run(post_init_data) != POST_RC_OK) {
+        next_state = FSM_STATE_ERROR;
+    }
+
     switch (next_state) {
         case FSM_STATE_IDLE:
         case FSM_STATE_ERROR:
@@ -85,6 +93,10 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
         default:
             next_state = FSM_NO_CHANGE;
     }
+
+    // TODO: add checks for return codes
+    can_communication_api_process_tx(CAN_COMMUNICATION_NETWORK_PRIMARY);
+    can_communication_api_process_rx(CAN_COMMUNICATION_NETWORK_PRIMARY);
 
     return next_state;
 }
