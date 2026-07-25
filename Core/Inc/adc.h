@@ -43,10 +43,9 @@ void MX_ADC1_Init(void);
 /* USER CODE BEGIN Prototypes */
 
 /*!
- * \brief Begin an ADC conversion
- * \note Once the conversion is over, HAL_ADC_ConvCpltCallback is triggered
+ * \brief Calibrates and starts the ADC peripheral
  */
-void adc_start_conversion(void);
+void adc_init(void);
 
 /* USER CODE END Prototypes */
 

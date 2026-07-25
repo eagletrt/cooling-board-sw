@@ -27,12 +27,6 @@ extern "C" {
 // header if you need
 typedef void fsm_state_data_t;
 
-typedef void (*fsm_start_conversion_callback)(void);
-
-struct FsmIdleData {
-    fsm_start_conversion_callback start_conversion;
-};
-
 // NOTHING SHALL BE CHANGED AFTER THIS LINE!
 
 // List of states

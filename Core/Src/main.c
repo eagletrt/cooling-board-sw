@@ -97,19 +97,17 @@ int main(void) {
     MX_FDCAN1_Init();
     MX_TIM3_Init();
     MX_USART1_UART_Init();
+    MX_TIM1_Init();
     /* USER CODE BEGIN 2 */
-    HAL_ADCEx_Calibration_Start(&hadc1);
+    adc_init();
+    HAL_TIM_Base_Start(&htim1);
 
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        struct FsmIdleData data = {
-            .start_conversion = adc_start_conversion,
-        };
-
-        current_state = fsm_run_state(current_state, &data);
+        current_state = fsm_run_state(current_state, nullptr);
 
         /* USER CODE END WHILE */
 

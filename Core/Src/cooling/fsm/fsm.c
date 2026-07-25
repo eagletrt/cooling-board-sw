@@ -19,7 +19,6 @@ Functions and types have been generated with prefix "fsm_"
 
 /* USER CODE BEGIN Includes */
 
-#include "adc.h"
 #include "post-api.h"
 
 /* USER CODE END Includes */
@@ -86,11 +85,6 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
 fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
-    if (data == nullptr) {
-        return FSM_STATE_ERROR;
-    }
-    struct FsmIdleData *idle_struct = (struct FsmIdleData *)data;
-    idle_struct->start_conversion();
 
     switch (next_state) {
         case FSM_NO_CHANGE:
@@ -209,7 +203,7 @@ fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data) {
         transition(data);
 
     return new_state;
-};
+}
 
 #ifdef TEST_MAIN
 #include <unistd.h>
