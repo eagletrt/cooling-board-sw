@@ -6,7 +6,12 @@
  */
 
 #include "post-api.h"
+#include "temperatures-api.h"
 
 enum PostReturnCode post_api_run(void) {
+    if (temperatures_api_init() != TEMPERATURES_RC_OK) {
+        return POST_RC_UNINITIALIZED_MODULE;
+    }
+
     return POST_RC_OK;
 }
