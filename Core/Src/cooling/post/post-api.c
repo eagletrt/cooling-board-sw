@@ -9,6 +9,10 @@
 #include "can-communication-api.h"
 
 enum PostReturnCode post_api_run(struct PostInitData *post_init_data) {
+    if (temperatures_api_init() != TEMPERATURES_RC_OK) {
+        return POST_RC_UNINITIALIZED_MODULE;
+    }
+
     if (post_init_data == nullptr ||
         post_init_data->can_network_configurations[CAN_COMMUNICATION_NETWORK_PRIMARY].on_receive == nullptr ||
         post_init_data->can_network_configurations[CAN_COMMUNICATION_NETWORK_PRIMARY].send == nullptr) {

@@ -19,6 +19,13 @@ Functions and types have been generated with prefix "fsm_"
 #include "can-communication-api.h"
 #include "post-api.h"
 
+/* USER CODE BEGIN Includes */
+
+#include "eagletrt-api.h"
+#include "post-api.h"
+
+/* USER CODE END Includes */
+
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
 // GLOBALS
@@ -60,6 +67,11 @@ transition_func_t *const fsm_transition_table[FSM_NUM_STATES][FSM_NUM_STATES] = 
 fsm_state_t fsm_do_init(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_STATE_IDLE;
     /* Your Code Here */
+    EAGLETRT_API_UNUSED(data);
+
+    const enum PostReturnCode post_return_code = post_api_run();
+
+    next_state = (post_return_code == POST_RC_OK) ? FSM_STATE_IDLE : FSM_STATE_ERROR;
 
     struct PostInitData *post_init_data = (struct PostInitData *)data;
 
@@ -83,6 +95,7 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
 fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
+    EAGLETRT_API_UNUSED(data);
 
     switch (next_state) {
         case FSM_NO_CHANGE:
@@ -106,6 +119,7 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
 fsm_state_t fsm_do_error(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
+    EAGLETRT_API_UNUSED(data);
 
     switch (next_state) {
         case FSM_NO_CHANGE:
@@ -123,6 +137,7 @@ fsm_state_t fsm_do_error(fsm_state_data_t *data) {
 fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
+    EAGLETRT_API_UNUSED(data);
 
     switch (next_state) {
         case FSM_NO_CHANGE:
@@ -154,18 +169,21 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
 // 1. from init to idle
 void fsm_init_done(fsm_state_data_t *data) {
     /* Your Code Here */
+    EAGLETRT_API_UNUSED(data);
 }
 
 // This function is called in 1 transition:
 // 1. from init to error
 void fsm_init_error(fsm_state_data_t *data) {
     /* Your Code Here */
+    EAGLETRT_API_UNUSED(data);
 }
 
 // This function is called in 1 transition:
 // 1. from idle to flash
 void fsm_start_flash(fsm_state_data_t *data) {
     /* Your Code Here */
+    EAGLETRT_API_UNUSED(data);
 }
 
 // This function is called in 2 transitions:
@@ -173,12 +191,14 @@ void fsm_start_flash(fsm_state_data_t *data) {
 // 2. from flash to error
 void fsm_error_detected(fsm_state_data_t *data) {
     /* Your Code Here */
+    EAGLETRT_API_UNUSED(data);
 }
 
 // This function is called in 1 transition:
 // 1. from flash to idle
 void fsm_flash_done(fsm_state_data_t *data) {
     /* Your Code Here */
+    EAGLETRT_API_UNUSED(data);
 }
 
 /*  ____  _        _        
@@ -205,7 +225,7 @@ fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data) {
         transition(data);
 
     return new_state;
-};
+}
 
 #ifdef TEST_MAIN
 #include <unistd.h>
