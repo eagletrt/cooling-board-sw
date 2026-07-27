@@ -105,6 +105,9 @@ int main(void) {
     adc_init();
     HAL_TIM_Base_Start(&htim1);
 
+    HAL_FDCAN_Start(&hfdcan1);
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+
     struct PostInitData post_init_data = {
         .can_network_configurations = {
             [CAN_COMMUNICATION_NETWORK_PRIMARY] = {
