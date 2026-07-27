@@ -16,13 +16,12 @@ Functions and types have been generated with prefix "fsm_"
 ******************************************************************************/
 
 #include "fsm.h"
-#include "can-communication-api.h"
-#include "post-api.h"
 
 /* USER CODE BEGIN Includes */
 
 #include "eagletrt-api.h"
 #include "post-api.h"
+#include "can-communication-api.h"
 
 /* USER CODE END Includes */
 
@@ -67,17 +66,11 @@ transition_func_t *const fsm_transition_table[FSM_NUM_STATES][FSM_NUM_STATES] = 
 fsm_state_t fsm_do_init(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_STATE_IDLE;
     /* Your Code Here */
-    EAGLETRT_API_UNUSED(data);
-
-    const enum PostReturnCode post_return_code = post_api_run();
-
-    next_state = (post_return_code == POST_RC_OK) ? FSM_STATE_IDLE : FSM_STATE_ERROR;
-
     struct PostInitData *post_init_data = (struct PostInitData *)data;
 
-    if (post_api_run(post_init_data) != POST_RC_OK) {
-        next_state = FSM_STATE_ERROR;
-    }
+    const enum PostReturnCode post_return_code = post_api_run(post_init_data);
+
+    next_state = (post_return_code == POST_RC_OK) ? FSM_STATE_IDLE : FSM_STATE_ERROR;
 
     switch (next_state) {
         case FSM_STATE_IDLE:
