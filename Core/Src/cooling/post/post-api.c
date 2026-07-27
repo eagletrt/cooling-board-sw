@@ -6,6 +6,7 @@
  */
 
 #include "post-api.h"
+#include "temperatures-api.h"
 #include "can-communication-api.h"
 
 enum PostReturnCode post_api_run(struct PostInitData *post_init_data) {
