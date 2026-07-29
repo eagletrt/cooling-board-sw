@@ -25,8 +25,6 @@
 #include "eagletrt-api.h"
 #include "can-communication-api.h"
 
-constexpr uint32_t fdcan_invalid_dlc = FDCAN_DLC_BYTES_8 + 1U;
-
 /* USER CODE END 0 */
 
 FDCAN_HandleTypeDef hfdcan1;
@@ -139,6 +137,8 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef *fdcanHandle) {
 /* USER CODE BEGIN 1 */
 
 EAGLETRT_STATIC uint32_t prv_fdcan_get_header_length(uint8_t length) {
+    constexpr uint32_t fdcan_invalid_dlc = UINT32_MAX;
+
     if (length > CAN_COMMUNICATION_FRAME_DATA_SIZE) {
         return fdcan_invalid_dlc;
     }
@@ -172,7 +172,7 @@ enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunication
 
     uint32_t dlc = prv_fdcan_get_header_length(frame->length);
 
-    if (dlc >= fdcan_invalid_dlc) {
+    if (dlc > FDCAN_DLC_BYTES_8) {
         return CAN_COMMUNICATION_RC_INVALID_LENGTH;
     }
 
