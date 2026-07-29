@@ -4,7 +4,7 @@
 
 extern struct TemperaturesHandler temperatures_handler;
 
-constexpr int TEMPERATURES_NAME_INVALID_NAME = -1;
+constexpr int temperatures_invalid_name = -1;
 
 void setUp(void) {
     memset(&temperatures_handler, 0U, sizeof(temperatures_handler));
@@ -20,7 +20,7 @@ void test_temperatures_initialization_to_zero(void) {
 }
 
 void test_temperatures_get_temperature_invalid_name(void) {
-    TEST_ASSERT_EQUAL_FLOAT(temperatures_api_get_temperature(TEMPERATURES_NAME_INVALID_NAME), -420.0F);
+    TEST_ASSERT_EQUAL_FLOAT(temperatures_api_get_temperature(temperatures_invalid_name), -420.0F);
 }
 
 void test_temperatures_get_temperature_valid_name(void) {
@@ -31,7 +31,7 @@ void test_temperatures_get_temperature_valid_name(void) {
 }
 
 void test_temperatures_set_temperature_invalid_name(void) {
-    TEST_ASSERT_EQUAL(temperatures_api_set_temperature(TEMPERATURES_NAME_INVALID_NAME, 4.3F), TEMPERATURES_RC_INVALID_NAME);
+    TEST_ASSERT_EQUAL(temperatures_api_set_temperature(temperatures_invalid_name, 4.3F), TEMPERATURES_RC_INVALID_NAME);
 }
 
 void test_temperatures_set_temperature_valid_name(void) {
