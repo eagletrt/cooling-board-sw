@@ -27,7 +27,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #include "fsm.h"
+#include "post.h"
+#include "can-communication-router-api.h"
 
 /* USER CODE END Includes */
 
@@ -101,6 +104,22 @@ int main(void) {
     /* USER CODE BEGIN 2 */
     adc_init();
     HAL_TIM_Base_Start(&htim1);
+
+    HAL_FDCAN_Start(&hfdcan1);
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+
+    struct PostInitData post_init_data = {
+        .can_network_configurations = {
+            [CAN_COMMUNICATION_NETWORK_PRIMARY] = {
+                .cs_enter = __disable_irq,
+                .cs_exit = __enable_irq,
+                .on_receive = can_communication_router_api_receive_primary,
+                .send = fdcan_send_primary,
+            },
+        },
+    };
+
+    current_state = fsm_run_state(current_state, &post_init_data);
 
     /* USER CODE END 2 */
 
