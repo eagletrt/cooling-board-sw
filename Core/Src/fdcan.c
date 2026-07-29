@@ -22,7 +22,10 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "eagletrt-api.h"
 #include "can-communication-api.h"
+
+constexpr uint32_t fdcan_invalid_dlc = FDCAN_DLC_BYTES_8 + 1U;
 
 /* USER CODE END 0 */
 
@@ -135,6 +138,26 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef *fdcanHandle) {
 
 /* USER CODE BEGIN 1 */
 
+EAGLETRT_STATIC uint32_t prv_fdcan_get_header_length(uint8_t length) {
+    if (length > CAN_COMMUNICATION_FRAME_DATA_SIZE) {
+        return fdcan_invalid_dlc;
+    }
+
+    const uint32_t dlc[] = {
+        FDCAN_DLC_BYTES_0,
+        FDCAN_DLC_BYTES_1,
+        FDCAN_DLC_BYTES_2,
+        FDCAN_DLC_BYTES_3,
+        FDCAN_DLC_BYTES_4,
+        FDCAN_DLC_BYTES_5,
+        FDCAN_DLC_BYTES_6,
+        FDCAN_DLC_BYTES_7,
+        FDCAN_DLC_BYTES_8
+    };
+
+    return dlc[length];
+}
+
 enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunicationFrame *frame) {
     FDCAN_TxHeaderTypeDef header = {
         .Identifier = frame->id,
@@ -147,37 +170,13 @@ enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunication
         .MessageMarker = 0
     };
 
-    switch (frame->length) {
-        case 0:
-            header.DataLength = FDCAN_DLC_BYTES_0;
-            break;
-        case 1:
-            header.DataLength = FDCAN_DLC_BYTES_1;
-            break;
-        case 2:
-            header.DataLength = FDCAN_DLC_BYTES_2;
-            break;
-        case 3:
-            header.DataLength = FDCAN_DLC_BYTES_3;
-            break;
-        case 4:
-            header.DataLength = FDCAN_DLC_BYTES_4;
-            break;
-        case 5:
-            header.DataLength = FDCAN_DLC_BYTES_5;
-            break;
-        case 6:
-            header.DataLength = FDCAN_DLC_BYTES_6;
-            break;
-        case 7:
-            header.DataLength = FDCAN_DLC_BYTES_7;
-            break;
-        case 8:
-            header.DataLength = FDCAN_DLC_BYTES_8;
-            break;
-        default:
-            return CAN_COMMUNICATION_RC_INVALID_LENGTH;
+    uint32_t dlc = prv_fdcan_get_header_length(frame->length);
+
+    if (dlc >= fdcan_invalid_dlc) {
+        return CAN_COMMUNICATION_RC_INVALID_LENGTH;
     }
+
+    header.DataLength = dlc;
 
     if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &header, frame->data) != HAL_OK) {
         return CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
