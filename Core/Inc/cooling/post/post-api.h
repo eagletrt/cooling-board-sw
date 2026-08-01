@@ -1,5 +1,5 @@
 /*!
- * \file post.h
+ * \file post-api.h
  * \author Thomas Moretti [majorfrost173@gmail.com]
  * \date 2026-06-18
  * \brief Module dedicated to running a power-on self-test (POST)

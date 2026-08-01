@@ -22,7 +22,7 @@ enum TemperaturesReturnCode : uint8_t {
 };
 
 /*!
- * \brief Names for the temperatures read, one from each of the sensors
+ * \brief Names for the temperatures that the module keeps track of
  */
 enum TemperaturesName : uint8_t {
     TEMPERATURES_NAME_RIGHT_PUMP_EXIT_TEMPERATURE,

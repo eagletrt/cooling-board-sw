@@ -1,3 +1,10 @@
+/*!
+ * \file temperatures-api.c
+ * \author Thomas Moretti [majorfrost173@gmail.com]
+ * \date 2026-06-22
+ * \brief Implementation of the APIs of the module dedicated to keeping track of the temperatures read from the sensors
+ */
+
 #include <string.h>
 
 #include "temperatures-api.h"

@@ -20,6 +20,10 @@
 
 #include <string.h>
 
+/*!
+ * \brief Internal module handler
+ * \details Hidden from external linkage to enforce API-only access
+ */
 EAGLETRT_STATIC struct CanCommunicationHandler handler;
 
 /*!

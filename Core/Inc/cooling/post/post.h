@@ -20,6 +20,9 @@ enum PostReturnCode {
     POST_RC_ERROR                 /*!< POST encountered an error */
 };
 
+/*!
+ * \brief Structure containing all the information needed at initialization time
+ */
 struct PostInitData {
     struct CanCommunicationNetworkConfig can_network_configurations[CAN_COMMUNICATION_NETWORK_COUNT];
     struct ControlPidConfig pid_configurations[CONTROL_NAME_COUNT];

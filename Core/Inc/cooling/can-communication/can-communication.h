@@ -4,7 +4,7 @@
  * \authors Alessandro Bridi [ale.bridi15@gmail.com]
  * \authors Thomas Moretti [majorfrost173@gmail.com]
  *
- * \brief Hardware-agnostic definitions for the steering-wheel CAN-bus
+ * \brief Hardware-agnostic definitions for the cooling board CAN-bus
  *     communication.
  *
  * \details The CAN module wraps a PAL handler per network and presents a
@@ -62,7 +62,7 @@ enum CanCommunicationReturnCode {
 };
 
 /*!
- * \brief Available CAN networks on the steering wheel.
+ * \brief Available CAN networks on the cooling board.
  *
  * \details The enum doubles as an index into the per-network handler
  *     arrays, so do not reorder existing entries — only append before

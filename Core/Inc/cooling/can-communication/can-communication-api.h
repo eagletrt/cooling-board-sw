@@ -4,7 +4,7 @@
  * \authors Alessandro Bridi [ale.bridi15@gmail.com]
  * \authors Thomas Moretti [majorfrost173@gmail.com]
  *
- * \brief Public API for the steering-wheel CAN-bus communication module.
+ * \brief Public API for the cooling board CAN-bus communication module.
  *
  * \details The module owns one PAL handler per network. All wiring goes like this
  *     Lifecycle (per network):
