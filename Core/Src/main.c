@@ -117,6 +117,13 @@ int main(void) {
                 .send = fdcan_send_primary,
             },
         },
+        .pid_configurations = {
+            // TODO: use meaningful values here
+            [CONTROL_NAME_LEFT_PUMP] = { 0 },
+            [CONTROL_NAME_LEFT_FAN] = { 0 },
+            [CONTROL_NAME_RIGHT_PUMP] = { 0 },
+            [CONTROL_NAME_RIGHT_FAN] = { 0 },
+        },
     };
 
     current_state = fsm_run_state(current_state, &post_init_data);

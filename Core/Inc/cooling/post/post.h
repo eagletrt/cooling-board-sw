@@ -9,6 +9,7 @@
 #define POST_H
 
 #include "can-communication.h"
+#include "control.h"
 
 /*!
  * \brief Return codes for the POST module APIs
@@ -21,6 +22,7 @@ enum PostReturnCode {
 
 struct PostInitData {
     struct CanCommunicationNetworkConfig can_network_configurations[CAN_COMMUNICATION_NETWORK_COUNT];
+    struct ControlPidConfig pid_configurations[CONTROL_NAME_COUNT];
 };
 
 #endif // POST_H
