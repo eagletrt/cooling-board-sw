@@ -17,13 +17,17 @@
 EAGLETRT_STATIC struct ControlHandler control_handler;
 
 enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configurations[CONTROL_NAME_COUNT]) {
+    if (pi_configurations == nullptr) {
+        return CONTROL_RC_NULL_POINTER;
+    }
+
     enum ControlReturnCode return_code = CONTROL_RC_OK;
 
     arena_allocator_api_init(&control_handler.harena);
 
     for (uint8_t control_name = CONTROL_NAME_LEFT_PUMP; control_name < CONTROL_NAME_COUNT; control_name++) {
         int pid_init_return_code = pid_controller_api_init(&control_handler.pi_controller[control_name],
-                                                           pi_configurations[control_name].ki,
+                                                           pi_configurations[control_name].kp,
                                                            pi_configurations[control_name].ki,
                                                            0.0f,
                                                            pi_configurations[control_name].sample_time,

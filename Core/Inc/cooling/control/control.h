@@ -18,6 +18,7 @@
  */
 enum ControlReturnCode {
     CONTROL_RC_OK,           /*!< The function executed succesfully */
+    CONTROL_RC_NULL_POINTER, /*!< An argument of pointer type was null or a null pointer was used inside the function */
     CONTROL_RC_INVALID_NAME, /*!< The name of the control output that was provided is not valid */
     CONTROL_RC_INVALID_MODE, /*!< The mode that was provided is not valid */
     CONTROL_RC_ERROR         /*!< The function encountered an error */
