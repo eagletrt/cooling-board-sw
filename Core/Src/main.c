@@ -31,6 +31,7 @@
 #include "fsm.h"
 #include "post.h"
 #include "can-communication-router-api.h"
+#include "control-api.h"
 
 /* USER CODE END Includes */
 
@@ -102,8 +103,6 @@ int main(void) {
     MX_USART1_UART_Init();
     MX_TIM1_Init();
     /* USER CODE BEGIN 2 */
-    adc_init();
-    HAL_TIM_Base_Start(&htim1);
 
     HAL_FDCAN_Start(&hfdcan1);
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
@@ -118,7 +117,7 @@ int main(void) {
             },
         },
         .pid_configurations = {
-            // TODO: use meaningful values here
+            // TODO: provide a meaningful configuration here
             [CONTROL_NAME_LEFT_PUMP] = { 0 },
             [CONTROL_NAME_LEFT_FAN] = { 0 },
             [CONTROL_NAME_RIGHT_PUMP] = { 0 },
@@ -139,6 +138,8 @@ int main(void) {
 
         /* USER CODE BEGIN 3 */
     }
+    control_api_deinit();
+
     /* USER CODE END 3 */
 }
 
