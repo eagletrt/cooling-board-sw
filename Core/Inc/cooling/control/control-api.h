@@ -21,6 +21,17 @@
 enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configurations[CONTROL_NAME_COUNT]);
 
 /*!
+ * \brief Deinitalize the control module
+ * \note Since the arena allocator should be free'd even if the program never ends, this does so
+ */
+void control_api_deinit(void);
+
+/*!
+ * \brief Updates the internal status of the control module (status variables, config, etc...)
+ */
+void control_api_update_internal_status(void);
+
+/*!
  * \brief Updates the value of the output dedicated to the control of the left pump
  *
  * \param[in] control_mode The mode used to update the control output

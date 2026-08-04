@@ -6,8 +6,9 @@
  */
 
 #include "control-api.h"
+#include "temperatures-api.h"
 #include "pid-controller-api.h"
-#include "eagletrt.h"
+#include "eagletrt-api.h"
 
 /*!
  * \brief Internal module handler
@@ -40,6 +41,45 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
     return return_code;
 }
 
+void control_api_deinit(void) {
+    arena_allocator_api_free(&control_handler.harena);
+}
+
+void control_api_update_internal_status(void) {
+    if (temperatures_api_get_temperatures_status() == true) {
+        float front_left_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_FRONT_LEFT_MOTOR_INTERNAL_TEMPERATURE);
+        float rear_left_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_REAR_LEFT_MOTOR_INTERNAL_TEMPERATURE);
+        float front_right_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_FRONT_RIGHT_MOTOR_INTERNAL_TEMPERATURE);
+        float rear_right_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_REAR_RIGHT_MOTOR_INTERNAL_TEMPERATURE);
+        float tsac_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_TSAC_TEMPERATURE);
+        float inverter_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_INVERTER_TEMPERATURE);
+
+        float left_motors_max_temperature = EAGLETRT_API_MAX(front_left_motor_internal_temperature,
+                                                             rear_left_motor_internal_temperature);
+        float right_motors_max_temperature = EAGLETRT_API_MAX(front_right_motor_internal_temperature,
+                                                              rear_right_motor_internal_temperature);
+        float cooling_left_circuit_max_temperature = EAGLETRT_API_MAX(left_motors_max_temperature,
+                                                                      inverter_temperature);
+        float cooling_right_circuit_max_temperature = EAGLETRT_API_MAX(right_motors_max_temperature,
+                                                                       tsac_temperature);
+
+        pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_LEFT_FAN], cooling_left_circuit_max_temperature);
+        pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_LEFT_PUMP], cooling_left_circuit_max_temperature);
+        pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_RIGHT_FAN], cooling_right_circuit_max_temperature);
+        pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_RIGHT_PUMP], cooling_right_circuit_max_temperature);
+
+        constexpr float motors_maximum_admissible_temperature = 110.f;
+
+        if (left_motors_max_temperature >= motors_maximum_admissible_temperature) {
+            // TODO: decrease set point of left circuit PI configurations
+        }
+
+        if (right_motors_max_temperature >= motors_maximum_admissible_temperature) {
+            // TODO: decrease set point of right circuit PI configurations
+        }
+    }
+}
+
 EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlName control_name, enum ControlMode control_mode, float control_percentage) {
     if (control_name >= CONTROL_NAME_COUNT) {
         return CONTROL_RC_INVALID_NAME;
@@ -50,7 +90,7 @@ EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlNam
             control_handler.output[control_name] = pid_controller_api_compute(&control_handler.pi_controller[control_name]);
             break;
         case CONTROL_MODE_MANUAL:
-            control_handler.output[control_name] = control_percentage;
+            control_handler.output[control_name] = EAGLETRT_API_CLAMP(control_percentage, 0.0f, 1.0f);
             break;
         default:
             return CONTROL_RC_INVALID_MODE;
