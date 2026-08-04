@@ -22,6 +22,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "eagletrt-api.h"
 #include "post-api.h"
 #include "can-communication-api.h"
+#include "control-api.h"
 
 /* USER CODE END Includes */
 
@@ -103,6 +104,13 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
     // TODO: add checks for return codes
     can_communication_api_process_tx(CAN_COMMUNICATION_NETWORK_PRIMARY);
     can_communication_api_process_rx(CAN_COMMUNICATION_NETWORK_PRIMARY);
+
+    control_api_update_internal_status();
+
+    control_api_update_left_fan_output(CONTROL_MODE_AUTOMATIC, 0.0f);
+    control_api_update_left_pump_output(CONTROL_MODE_AUTOMATIC, 0.0f);
+    control_api_update_right_fan_output(CONTROL_MODE_AUTOMATIC, 0.0f);
+    control_api_update_right_pump_output(CONTROL_MODE_AUTOMATIC, 0.0f);
 
     return next_state;
 }
