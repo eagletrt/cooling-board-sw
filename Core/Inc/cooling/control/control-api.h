@@ -87,4 +87,12 @@ enum ControlReturnCode control_api_update_right_pump_output(enum ControlMode con
  */
 enum ControlReturnCode control_api_update_right_fan_output(enum ControlMode control_mode, float control_percentage);
 
+/*!
+ * \brief Returns the value of the specified control output
+ *
+ * \param[in] control_name The name of the control output
+ * \return The value of the control output
+ */
+float control_api_get_output(enum ControlName control_name);
+
 #endif // CONTROL_API_H

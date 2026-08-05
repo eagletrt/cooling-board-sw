@@ -16,6 +16,11 @@
  */
 EAGLETRT_STATIC struct ControlHandler control_handler;
 
+/*!
+ * \brief Invalid control output value
+ */
+constexpr float control_invalid_output = -1.f;
+
 enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configurations[CONTROL_NAME_COUNT]) {
     if (pi_configurations == nullptr) {
         return CONTROL_RC_NULL_POINTER;
@@ -91,10 +96,10 @@ EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlNam
 
     switch (control_mode) {
         case CONTROL_MODE_AUTOMATIC:
-            control_handler.output[control_name] = pid_controller_api_compute(&control_handler.pi_controller[control_name]);
+            control_handler.output[control_name] = EAGLETRT_API_CLAMP(pid_controller_api_compute(&control_handler.pi_controller[control_name]), 0.f, 1.f);
             break;
         case CONTROL_MODE_MANUAL:
-            control_handler.output[control_name] = EAGLETRT_API_CLAMP(control_percentage, 0.0f, 1.0f);
+            control_handler.output[control_name] = EAGLETRT_API_CLAMP(control_percentage, 0.f, 1.f);
             break;
         default:
             return CONTROL_RC_INVALID_MODE;
@@ -117,4 +122,12 @@ enum ControlReturnCode control_api_update_right_pump_output(enum ControlMode con
 
 enum ControlReturnCode control_api_update_right_fan_output(enum ControlMode control_mode, float control_percentage) {
     return prv_control_update_output(CONTROL_NAME_RIGHT_FAN, control_mode, control_percentage);
+}
+
+float control_api_get_output(enum ControlName control_name) {
+    if (control_name >= CONTROL_NAME_COUNT) {
+        return control_invalid_output;
+    }
+
+    return control_handler.output[control_name];
 }
