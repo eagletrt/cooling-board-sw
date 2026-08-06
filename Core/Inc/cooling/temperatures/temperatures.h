@@ -22,7 +22,7 @@ enum TemperaturesReturnCode : uint8_t {
 };
 
 /*!
- * \brief Names for the temperatures read, one from each of the sensors
+ * \brief Names for the temperatures that the module keeps track of
  */
 enum TemperaturesName : uint8_t {
     TEMPERATURES_NAME_RIGHT_PUMP_EXIT_TEMPERATURE,
@@ -35,6 +35,10 @@ enum TemperaturesName : uint8_t {
     TEMPERATURES_NAME_LEFT_RADIATOR_EXIT_TEMPERATURE,
     TEMPERATURES_NAME_TSAC_TEMPERATURE,
     TEMPERATURES_NAME_INVERTER_TEMPERATURE,
+    TEMPERATURES_NAME_FRONT_LEFT_MOTOR_INTERNAL_TEMPERATURE,
+    TEMPERATURES_NAME_REAR_LEFT_MOTOR_INTERNAL_TEMPERATURE,
+    TEMPERATURES_NAME_FRONT_RIGHT_MOTOR_INTERNAL_TEMPERATURE,
+    TEMPERATURES_NAME_REAR_RIGHT_MOTOR_INTERNAL_TEMPERATURE,
     TEMPERATURES_NAME_COUNT
 };
 
@@ -43,6 +47,7 @@ enum TemperaturesName : uint8_t {
  */
 struct TemperaturesHandler {
     float temperatures[TEMPERATURES_NAME_COUNT];
+    bool temperatures_updated;
 };
 
 #endif // TEMPERATURES_H
