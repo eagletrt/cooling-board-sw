@@ -67,15 +67,26 @@ void control_api_update_internal_status(void) {
                                                              rear_left_motor_internal_temperature);
         float right_motors_max_temperature = EAGLETRT_API_MAX(front_right_motor_internal_temperature,
                                                               rear_right_motor_internal_temperature);
-        float cooling_left_circuit_max_temperature = EAGLETRT_API_MAX(left_motors_max_temperature,
-                                                                      inverter_temperature);
-        float cooling_right_circuit_max_temperature = EAGLETRT_API_MAX(right_motors_max_temperature,
-                                                                       tsac_temperature);
 
-        pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_LEFT_FAN], cooling_left_circuit_max_temperature);
-        pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_LEFT_PUMP], cooling_left_circuit_max_temperature);
-        pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_RIGHT_FAN], cooling_right_circuit_max_temperature);
-        pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_RIGHT_PUMP], cooling_right_circuit_max_temperature);
+        constexpr float tsac_reference_temperature = 40.f;
+        constexpr float inverter_reference_temperature = 60.f;
+        constexpr float motors_reference_temperature = 80.f;
+
+        if (inverter_temperature >= inverter_reference_temperature && left_motors_max_temperature <= motors_reference_temperature) {
+            pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_LEFT_FAN], inverter_temperature);
+            pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_LEFT_PUMP], inverter_temperature);
+        } else {
+            pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_LEFT_FAN], left_motors_max_temperature);
+            pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_LEFT_PUMP], left_motors_max_temperature);
+        }
+
+        if (tsac_temperature >= tsac_reference_temperature && right_motors_max_temperature <= motors_reference_temperature) {
+            pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_RIGHT_FAN], tsac_temperature);
+            pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_RIGHT_PUMP], tsac_temperature);
+        } else {
+            pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_RIGHT_FAN], right_motors_max_temperature);
+            pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_RIGHT_PUMP], right_motors_max_temperature);
+        }
 
         constexpr float motors_maximum_admissible_temperature = 110.f;
 

@@ -53,17 +53,22 @@ void test_control_update_output_works_as_expected_in_manual_mode(void) {
     TEST_ASSERT_EQUAL_FLOAT(test_percentage, control_handler.output[CONTROL_NAME_LEFT_FAN]);
 }
 
-void test_control_update_output_clamps_to_range_in_manual_mode(void) {
+void test_control_update_output_clamps_value_under_range_in_manual_mode(void) {
     control_api_init(test_config);
 
-    constexpr float test_percentage_above_range = 1.4f;
     constexpr float test_percentage_below_range = -0.6f;
-
-    TEST_ASSERT_EQUAL(CONTROL_RC_OK, control_api_update_right_pump_output(CONTROL_MODE_MANUAL, test_percentage_above_range));
-    TEST_ASSERT_EQUAL_FLOAT(1.0f, control_handler.output[CONTROL_NAME_RIGHT_PUMP]);
 
     TEST_ASSERT_EQUAL(CONTROL_RC_OK, control_api_update_right_fan_output(CONTROL_MODE_MANUAL, test_percentage_below_range));
     TEST_ASSERT_EQUAL_FLOAT(0.0f, control_handler.output[CONTROL_NAME_RIGHT_FAN]);
+}
+
+void test_control_update_output_clamps_value_over_range_in_manual_mode(void) {
+    control_api_init(test_config);
+
+    constexpr float test_percentage_above_range = 1.4f;
+
+    TEST_ASSERT_EQUAL(CONTROL_RC_OK, control_api_update_right_pump_output(CONTROL_MODE_MANUAL, test_percentage_above_range));
+    TEST_ASSERT_EQUAL_FLOAT(1.0f, control_handler.output[CONTROL_NAME_RIGHT_PUMP]);
 }
 
 void test_control_update_output_is_deterministic_in_automatic_mode(void) {
@@ -84,22 +89,32 @@ void test_control_update_output_is_deterministic_in_automatic_mode(void) {
     TEST_ASSERT_EQUAL_FLOAT(expected_output, control_api_get_output(CONTROL_NAME_RIGHT_FAN));
 }
 
-void test_control_update_output_clamps_to_range_in_automatic_mode(void) {
+void test_control_update_output_clamps_value_under_range_in_automatic_mode(void) {
     control_api_init(test_config);
 
     float test_process_variable_over_right_fan_set_point = test_config[CONTROL_NAME_RIGHT_FAN].set_point + 10.f;
-    float test_process_variable_under_left_pump_set_point = test_config[CONTROL_NAME_LEFT_PUMP].set_point - 10.f;
 
     temperatures_api_set_temperature(TEMPERATURES_NAME_REAR_RIGHT_MOTOR_INTERNAL_TEMPERATURE, test_process_variable_over_right_fan_set_point);
-    temperatures_api_set_temperature(TEMPERATURES_NAME_FRONT_LEFT_MOTOR_INTERNAL_TEMPERATURE, test_process_variable_under_left_pump_set_point);
 
     control_api_update_internal_status();
 
     control_api_update_right_fan_output(CONTROL_MODE_AUTOMATIC, 0.f);
+
+    TEST_ASSERT_EQUAL_FLOAT(0.f, control_api_get_output(CONTROL_NAME_RIGHT_FAN));
+}
+
+void test_control_update_output_clamps_value_over_range_in_automatic_mode(void) {
+    control_api_init(test_config);
+
+    float test_process_variable_under_left_pump_set_point = test_config[CONTROL_NAME_LEFT_PUMP].set_point - 10.f;
+
+    temperatures_api_set_temperature(TEMPERATURES_NAME_FRONT_LEFT_MOTOR_INTERNAL_TEMPERATURE, test_process_variable_under_left_pump_set_point);
+
+    control_api_update_internal_status();
+
     control_api_update_left_pump_output(CONTROL_MODE_AUTOMATIC, 0.f);
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.f, control_api_get_output(CONTROL_NAME_RIGHT_FAN), "Right fan output was expected to clamp to lower bound");
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(1.f, control_api_get_output(CONTROL_NAME_LEFT_PUMP), "Left pump output was expected to clamp to upper bound");
+    TEST_ASSERT_EQUAL_FLOAT(1.f, control_api_get_output(CONTROL_NAME_LEFT_PUMP));
 }
 
 int main(void) {
@@ -111,10 +126,12 @@ int main(void) {
 
     RUN_TEST(test_control_update_output_in_invalid_mode);
     RUN_TEST(test_control_update_output_works_as_expected_in_manual_mode);
-    RUN_TEST(test_control_update_output_clamps_to_range_in_manual_mode);
+    RUN_TEST(test_control_update_output_clamps_value_under_range_in_manual_mode);
+    RUN_TEST(test_control_update_output_clamps_value_over_range_in_manual_mode);
 
     RUN_TEST(test_control_update_output_is_deterministic_in_automatic_mode);
-    RUN_TEST(test_control_update_output_clamps_to_range_in_automatic_mode);
+    RUN_TEST(test_control_update_output_clamps_value_under_range_in_automatic_mode);
+    RUN_TEST(test_control_update_output_clamps_value_over_range_in_automatic_mode);
 
     return UNITY_END();
 }
