@@ -108,7 +108,6 @@ int main(void) {
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
 
     struct PostInitData post_init_data = {
-        .get_tick = HAL_GetTick,
         .can_network_configurations = {
             [CAN_COMMUNICATION_NETWORK_PRIMARY] = {
                 .cs_enter = __disable_irq,

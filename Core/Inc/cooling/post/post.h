@@ -11,8 +11,6 @@
 #include "can-communication.h"
 #include "control.h"
 
-typedef uint32_t (*post_get_tick)(void);
-
 /*!
  * \brief Return codes for the POST module APIs
  */
@@ -26,7 +24,6 @@ enum PostReturnCode {
  * \brief Structure containing all the information needed at initialization time
  */
 struct PostInitData {
-    post_get_tick get_tick;
     struct CanCommunicationNetworkConfig can_network_configurations[CAN_COMMUNICATION_NETWORK_COUNT];
     struct ControlPidConfig pid_configurations[CONTROL_NAME_COUNT];
 };
