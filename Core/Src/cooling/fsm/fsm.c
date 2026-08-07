@@ -23,6 +23,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "post-api.h"
 #include "can-communication-api.h"
 #include "control-api.h"
+#include "identity-api.h"
 
 /* USER CODE END Includes */
 
@@ -81,6 +82,9 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
             next_state = FSM_NO_CHANGE;
     }
 
+    identity_api_send_status(FSM_STATE_IDLE, post_init_data->get_tick());
+    identity_api_send_information(post_init_data->get_tick());
+
     return next_state;
 }
 
@@ -89,7 +93,7 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
 fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
-    EAGLETRT_API_UNUSED(data);
+    struct FsmData *fsm_idle_data = (struct FsmData *)data;
 
     switch (next_state) {
         case FSM_NO_CHANGE:
@@ -101,16 +105,19 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
             next_state = FSM_NO_CHANGE;
     }
 
-    // TODO: add checks for return codes
-    can_communication_api_process_tx(CAN_COMMUNICATION_NETWORK_PRIMARY);
-    can_communication_api_process_rx(CAN_COMMUNICATION_NETWORK_PRIMARY);
+    identity_api_send_status(FSM_STATE_IDLE, fsm_idle_data->get_tick());
+    identity_api_send_information(fsm_idle_data->get_tick());
 
     control_api_update_internal_status();
 
-    control_api_update_left_fan_output(CONTROL_MODE_AUTOMATIC, 0.0f);
-    control_api_update_left_pump_output(CONTROL_MODE_AUTOMATIC, 0.0f);
-    control_api_update_right_fan_output(CONTROL_MODE_AUTOMATIC, 0.0f);
-    control_api_update_right_pump_output(CONTROL_MODE_AUTOMATIC, 0.0f);
+    control_api_update_left_fan_output(CONTROL_MODE_AUTOMATIC, 0.F);
+    control_api_update_left_pump_output(CONTROL_MODE_AUTOMATIC, 0.F);
+    control_api_update_right_fan_output(CONTROL_MODE_AUTOMATIC, 0.F);
+    control_api_update_right_pump_output(CONTROL_MODE_AUTOMATIC, 0.F);
+
+    // TODO: add checks for return codes
+    can_communication_api_process_tx(CAN_COMMUNICATION_NETWORK_PRIMARY);
+    can_communication_api_process_rx(CAN_COMMUNICATION_NETWORK_PRIMARY);
 
     return next_state;
 }
@@ -120,7 +127,7 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
 fsm_state_t fsm_do_error(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
-    EAGLETRT_API_UNUSED(data);
+    struct FsmData *fsm_error_data = (struct FsmData *)data;
 
     switch (next_state) {
         case FSM_NO_CHANGE:
@@ -130,6 +137,13 @@ fsm_state_t fsm_do_error(fsm_state_data_t *data) {
             next_state = FSM_NO_CHANGE;
     }
 
+    identity_api_send_status(FSM_STATE_ERROR, fsm_error_data->get_tick());
+    identity_api_send_information(fsm_error_data->get_tick());
+
+    // TODO: add checks for return codes
+    can_communication_api_process_tx(CAN_COMMUNICATION_NETWORK_PRIMARY);
+    can_communication_api_process_rx(CAN_COMMUNICATION_NETWORK_PRIMARY);
+
     return next_state;
 }
 
@@ -138,7 +152,7 @@ fsm_state_t fsm_do_error(fsm_state_data_t *data) {
 fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
-    EAGLETRT_API_UNUSED(data);
+    struct FsmData *fsm_flash_data = (struct FsmData *)data;
 
     switch (next_state) {
         case FSM_NO_CHANGE:
@@ -149,6 +163,13 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
         default:
             next_state = FSM_NO_CHANGE;
     }
+
+    identity_api_send_status(FSM_STATE_FLASH, fsm_flash_data->get_tick());
+    identity_api_send_information(fsm_flash_data->get_tick());
+
+    // TODO: add checks for return codes
+    can_communication_api_process_tx(CAN_COMMUNICATION_NETWORK_PRIMARY);
+    can_communication_api_process_rx(CAN_COMMUNICATION_NETWORK_PRIMARY);
 
     return next_state;
 }

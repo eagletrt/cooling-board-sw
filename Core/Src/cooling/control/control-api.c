@@ -19,7 +19,7 @@ EAGLETRT_STATIC struct ControlHandler control_handler;
 /*!
  * \brief Invalid control output value
  */
-constexpr float control_invalid_output = -1.f;
+constexpr float control_invalid_output = -1.F;
 
 enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configurations[CONTROL_NAME_COUNT]) {
     if (pi_configurations == nullptr) {
@@ -34,7 +34,7 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
         int pid_init_return_code = pid_controller_api_init(&control_handler.pi_controller[control_name],
                                                            pi_configurations[control_name].kp,
                                                            pi_configurations[control_name].ki,
-                                                           0.0f,
+                                                           0.F,
                                                            pi_configurations[control_name].sample_time,
                                                            pi_configurations[control_name].anti_windup,
                                                            nullptr,
@@ -68,9 +68,9 @@ void control_api_update_internal_status(void) {
         float right_motors_max_temperature = EAGLETRT_API_MAX(front_right_motor_internal_temperature,
                                                               rear_right_motor_internal_temperature);
 
-        constexpr float tsac_reference_temperature = 40.f;
-        constexpr float inverter_reference_temperature = 60.f;
-        constexpr float motors_reference_temperature = 80.f;
+        constexpr float tsac_reference_temperature = 40.F;
+        constexpr float inverter_reference_temperature = 60.F;
+        constexpr float motors_reference_temperature = 80.F;
 
         if (inverter_temperature >= inverter_reference_temperature && left_motors_max_temperature <= motors_reference_temperature) {
             pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_LEFT_FAN], inverter_temperature);
@@ -88,7 +88,7 @@ void control_api_update_internal_status(void) {
             pid_controller_api_update(&control_handler.pi_controller[CONTROL_NAME_RIGHT_PUMP], right_motors_max_temperature);
         }
 
-        constexpr float motors_maximum_admissible_temperature = 110.f;
+        constexpr float motors_maximum_admissible_temperature = 110.F;
 
         if (left_motors_max_temperature >= motors_maximum_admissible_temperature) {
             // TODO: decrease set point of left circuit PI configurations
@@ -107,10 +107,10 @@ EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlNam
 
     switch (control_mode) {
         case CONTROL_MODE_AUTOMATIC:
-            control_handler.output[control_name] = EAGLETRT_API_CLAMP(pid_controller_api_compute(&control_handler.pi_controller[control_name]), 0.f, 1.f);
+            control_handler.output[control_name] = EAGLETRT_API_CLAMP(pid_controller_api_compute(&control_handler.pi_controller[control_name]), 0.F, 1.F);
             break;
         case CONTROL_MODE_MANUAL:
-            control_handler.output[control_name] = EAGLETRT_API_CLAMP(control_percentage, 0.f, 1.f);
+            control_handler.output[control_name] = EAGLETRT_API_CLAMP(control_percentage, 0.F, 1.F);
             break;
         default:
             return CONTROL_RC_INVALID_MODE;

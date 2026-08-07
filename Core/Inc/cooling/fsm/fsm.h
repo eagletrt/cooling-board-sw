@@ -21,11 +21,18 @@ Functions and types have been generated with prefix "fsm_"
 extern "C" {
 #endif
 #include <stdlib.h>
+#include <stdint.h>
 
 // State data object
 // By default set to void; override this typedef or load the proper
 // header if you need
 typedef void fsm_state_data_t;
+
+typedef uint32_t (*fsm_get_tick_callback)(void);
+
+struct FsmData {
+    fsm_get_tick_callback get_tick;
+};
 
 // NOTHING SHALL BE CHANGED AFTER THIS LINE!
 
