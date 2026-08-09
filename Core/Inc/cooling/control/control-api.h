@@ -95,4 +95,11 @@ enum ControlReturnCode control_api_update_right_fan_output(enum ControlMode cont
  */
 float control_api_get_output(enum ControlName control_name);
 
+/*!
+ * \brief Periodically send the value of the outputs
+ *
+ * \param[in] tick The current time tick in ms
+ */
+enum ControlReturnCode control_api_periodically_send_outputs(uint32_t tick);
+
 #endif // CONTROL_API_H

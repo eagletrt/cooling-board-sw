@@ -25,6 +25,8 @@ Functions and types have been generated with prefix "fsm_"
 #include "control-api.h"
 #include "identity-api.h"
 
+#include "usart.h"
+
 /* USER CODE END Includes */
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
@@ -115,10 +117,22 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
 
     control_api_update_internal_status();
 
+    /*
     control_api_update_left_fan_output(CONTROL_MODE_AUTOMATIC, 0.F);
     control_api_update_left_pump_output(CONTROL_MODE_AUTOMATIC, 0.F);
     control_api_update_right_fan_output(CONTROL_MODE_AUTOMATIC, 0.F);
     control_api_update_right_pump_output(CONTROL_MODE_AUTOMATIC, 0.F);
+    */
+
+    control_api_update_left_fan_output(CONTROL_MODE_MANUAL, 0.5F);
+    control_api_update_left_pump_output(CONTROL_MODE_MANUAL, 0.91F);
+    control_api_update_right_fan_output(CONTROL_MODE_MANUAL, 0.5F);
+    control_api_update_right_pump_output(CONTROL_MODE_MANUAL, 0.76F);
+
+    usart_log("left pump control: %.2f\r\n", control_api_get_output(CONTROL_NAME_LEFT_PUMP));
+    usart_log("left fan control: %.2f\r\n", control_api_get_output(CONTROL_NAME_LEFT_FAN));
+    usart_log("right pump control: %.2f\r\n", control_api_get_output(CONTROL_NAME_RIGHT_PUMP));
+    usart_log("right fan control: %.2f\r\n", control_api_get_output(CONTROL_NAME_RIGHT_FAN));
 
     prv_periodically_send(CAN_PRIMARY_COOLINGFSM_STATUS_IDLE, fsm_idle_data->get_tick());
 

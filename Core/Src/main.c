@@ -33,6 +33,8 @@
 #include "can-communication-router-api.h"
 #include "control-api.h"
 
+#include "stm32c0xx_hal_tim.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -130,6 +132,11 @@ int main(void) {
     struct FsmData fsm_data = {
         .get_tick = HAL_GetTick
     };
+
+    tim_pwm_set_control(CONTROL_NAME_LEFT_FAN, 0.5F);
+    tim_pwm_set_control(CONTROL_NAME_LEFT_PUMP, 0.5F);
+    tim_pwm_set_control(CONTROL_NAME_RIGHT_FAN, 0.5F);
+    tim_pwm_set_control(CONTROL_NAME_RIGHT_PUMP, 0.5F);
 
     /* USER CODE END 2 */
 

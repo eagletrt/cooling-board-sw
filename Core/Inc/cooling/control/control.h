@@ -62,6 +62,7 @@ struct ControlHandler {
     struct ArenaAllocatorHandler harena;                    /*!< Arena allocator used by the PI controllers */
     struct PidController pi_controller[CONTROL_NAME_COUNT]; /*!< The PI controllers */
     float output[CONTROL_NAME_COUNT];                       /*!< The output values */
+    uint32_t last_send_tick_outputs;
 };
 
 #endif // CONTROL_H

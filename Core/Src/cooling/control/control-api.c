@@ -7,6 +7,8 @@
 
 #include "control-api.h"
 #include "temperatures-api.h"
+#include "can-communication-api.h"
+#include "can-primary-api.h"
 #include "pid-controller-api.h"
 #include "eagletrt-api.h"
 
@@ -141,4 +143,22 @@ float control_api_get_output(enum ControlName control_name) {
     }
 
     return control_handler.output[control_name];
+}
+
+enum ControlReturnCode control_api_periodically_send_outputs(uint32_t tick) {
+    if (tick - control_handler.last_send_tick_outputs >= can_primary_cycle_time_coolingout) {
+        union CanPrimaryMessages message = { .coolingout = {
+                                                 .pumpleft = control_handler.output[CONTROL_NAME_LEFT_PUMP],
+                                                 .pumpright = control_handler.output[CONTROL_NAME_RIGHT_PUMP],
+                                                 .fanleft = control_handler.output[CONTROL_NAME_LEFT_FAN],
+                                                 .fanright = control_handler.output[CONTROL_NAME_RIGHT_FAN] } };
+        struct CanCommunicationFrame frame = { .id = CAN_PRIMARY_MESSAGE_FRAME_ID_COOLINGOUT };
+
+        if (can_primary_api_serialize_from_id(frame.id, &message, frame.data) != -1) {
+            frame.length = can_primary_byte_size_coolingout;
+            EAGLETRT_API_UNUSED(can_communication_api_add_to_tx_buffer(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+        }
+    }
+
+    return CONTROL_RC_OK;
 }

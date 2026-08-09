@@ -20,6 +20,6 @@
  * \retval CAN_COMMUNICATION_RC_OK on success.
  * \retval CAN_COMMUNICATION_RC_RECEIVE_HANDLER_ERROR if dispatch fails.
  */
-enum CanCommunicationReturnCode can_communication_router_api_receive_primary(struct CanCommunicationFrame *frame);
+enum CanCommunicationReturnCode can_communication_router_api_receive_primary(const struct CanCommunicationFrame *frame);
 
 #endif // CAN_COMMUNICATION_ROUTER_API_H

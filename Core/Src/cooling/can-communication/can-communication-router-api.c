@@ -46,7 +46,7 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
     }
 }
 
-enum CanCommunicationReturnCode can_communication_router_api_receive_primary(struct CanCommunicationFrame *frame) {
+enum CanCommunicationReturnCode can_communication_router_api_receive_primary(const struct CanCommunicationFrame *frame) {
     if (frame == NULL) {
         return CAN_COMMUNICATION_RC_NULL_POINTER;
     }
