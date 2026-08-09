@@ -22,6 +22,7 @@ extern "C" {
 #endif
 #include <stdlib.h>
 #include <stdint.h>
+#include "control.h"
 
 // State data object
 // By default set to void; override this typedef or load the proper
@@ -29,9 +30,11 @@ extern "C" {
 typedef void fsm_state_data_t;
 
 typedef uint32_t (*fsm_get_tick_callback)(void);
+typedef enum ControlReturnCode (*fsm_set_control_callback)(enum ControlName control_name, float percentage);
 
 struct FsmData {
     fsm_get_tick_callback get_tick;
+    fsm_set_control_callback set_control;
 };
 
 // NOTHING SHALL BE CHANGED AFTER THIS LINE!

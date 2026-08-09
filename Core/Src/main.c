@@ -130,13 +130,22 @@ int main(void) {
     current_state = fsm_run_state(current_state, &post_init_data);
 
     struct FsmData fsm_data = {
-        .get_tick = HAL_GetTick
+        .get_tick = HAL_GetTick,
+        .set_control = tim_pwm_set_control
     };
 
+    // hardware testing
+    /*
     tim_pwm_set_control(CONTROL_NAME_LEFT_FAN, 0.5F);
     tim_pwm_set_control(CONTROL_NAME_LEFT_PUMP, 0.5F);
     tim_pwm_set_control(CONTROL_NAME_RIGHT_FAN, 0.5F);
     tim_pwm_set_control(CONTROL_NAME_RIGHT_PUMP, 0.5F);
+
+    tim_pwm_set_control(CONTROL_NAME_LEFT_FAN, control_api_get_output(CONTROL_NAME_LEFT_FAN));
+    tim_pwm_set_control(CONTROL_NAME_LEFT_PUMP, control_api_get_output(CONTROL_NAME_LEFT_PUMP));
+    tim_pwm_set_control(CONTROL_NAME_RIGHT_FAN, control_api_get_output(CONTROL_NAME_RIGHT_FAN));
+    tim_pwm_set_control(CONTROL_NAME_RIGHT_PUMP, control_api_get_output(CONTROL_NAME_RIGHT_PUMP));
+    */
 
     /* USER CODE END 2 */
 

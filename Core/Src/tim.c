@@ -203,7 +203,7 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *tim_baseHandle) {
 
 /* USER CODE BEGIN 1 */
 
-int map[CONTROL_NAME_COUNT] = {
+uint32_t control_to_tim_channel_map[CONTROL_NAME_COUNT] = {
     [CONTROL_NAME_LEFT_PUMP] = TIM_CHANNEL_3,
     [CONTROL_NAME_LEFT_FAN] = TIM_CHANNEL_4,
     [CONTROL_NAME_RIGHT_PUMP] = TIM_CHANNEL_2,
@@ -225,12 +225,12 @@ enum ControlReturnCode tim_pwm_set_control(enum ControlName control_name, float 
     // calculate pulse (CCR) for Duty Cycle
     // since amplitude is [0, 1], pulse = ARR * amplitude
     uint32_t pulse = (uint32_t)((float)arr * percentage);
-    __HAL_TIM_SET_COMPARE(&htim3, map[control_name], pulse);
+    __HAL_TIM_SET_COMPARE(&htim3, control_to_tim_channel_map[control_name], pulse);
 
     // "flush" ARR and CCR registers
     htim3.Instance->EGR = TIM_EGR_UG;
 
-    if (HAL_TIM_PWM_Start(&htim3, map[control_name]) != HAL_OK) {
+    if (HAL_TIM_PWM_Start(&htim3, control_to_tim_channel_map[control_name]) != HAL_OK) {
         return CONTROL_RC_ERROR;
     }
 

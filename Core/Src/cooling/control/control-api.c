@@ -147,6 +147,8 @@ float control_api_get_output(enum ControlName control_name) {
 
 enum ControlReturnCode control_api_periodically_send_outputs(uint32_t tick) {
     if (tick - control_handler.last_send_tick_outputs >= can_primary_cycle_time_coolingout) {
+        control_handler.last_send_tick_outputs = tick;
+
         union CanPrimaryMessages message = { .coolingout = {
                                                  .pumpleft = control_handler.output[CONTROL_NAME_LEFT_PUMP],
                                                  .pumpright = control_handler.output[CONTROL_NAME_RIGHT_PUMP],
