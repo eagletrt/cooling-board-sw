@@ -105,6 +105,12 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
     /* Your Code Here */
     struct FsmData *fsm_idle_data = (struct FsmData *)data;
 
+    if (fsm_idle_data == nullptr ||
+        fsm_idle_data->get_tick == nullptr ||
+        fsm_idle_data->set_control == nullptr) {
+        next_state = FSM_STATE_ERROR;
+    }
+
     switch (next_state) {
         case FSM_NO_CHANGE:
         case FSM_STATE_IDLE:
