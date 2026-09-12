@@ -107,7 +107,6 @@ int main(void) {
     /* USER CODE BEGIN 2 */
 
     HAL_FDCAN_Start(&hfdcan1);
-    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
 
     struct PostInitData post_init_data = {
         .can_network_configurations = {
@@ -128,6 +127,9 @@ int main(void) {
     };
 
     current_state = fsm_run_state(current_state, &post_init_data);
+
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
 
     struct FsmData fsm_data = {
         .get_tick = HAL_GetTick,

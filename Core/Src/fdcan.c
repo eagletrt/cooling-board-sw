@@ -47,7 +47,7 @@ void MX_FDCAN1_Init(void) {
     hfdcan1.Init.TransmitPause = DISABLE;
     hfdcan1.Init.ProtocolException = DISABLE;
     hfdcan1.Init.NominalPrescaler = 3;
-    hfdcan1.Init.NominalSyncJumpWidth = 3;
+    hfdcan1.Init.NominalSyncJumpWidth = 2;
     hfdcan1.Init.NominalTimeSeg1 = 12;
     hfdcan1.Init.NominalTimeSeg2 = 3;
     hfdcan1.Init.DataPrescaler = 1;
@@ -85,26 +85,23 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef *fdcanHandle) {
         /* FDCAN1 clock enable */
         __HAL_RCC_FDCAN1_CLK_ENABLE();
 
-        __HAL_RCC_GPIOB_CLK_ENABLE();
         __HAL_RCC_GPIOA_CLK_ENABLE();
         /**FDCAN1 GPIO Configuration
-    PB9     ------> FDCAN1_TX
     PA11 [PA9]     ------> FDCAN1_RX
+    PA12 [PA10]     ------> FDCAN1_TX
     */
-        GPIO_InitStruct.Pin = GPIO_PIN_9;
-        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-        GPIO_InitStruct.Alternate = GPIO_AF8_FDCAN1;
-        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-        GPIO_InitStruct.Pin = GPIO_PIN_11;
+        GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF4_FDCAN1;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+        /* FDCAN1 interrupt Init */
+        HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
+        HAL_NVIC_SetPriority(FDCAN1_IT1_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(FDCAN1_IT1_IRQn);
         /* USER CODE BEGIN FDCAN1_MspInit 1 */
 
         /* USER CODE END FDCAN1_MspInit 1 */
@@ -121,13 +118,14 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef *fdcanHandle) {
         __HAL_RCC_FDCAN1_CLK_DISABLE();
 
         /**FDCAN1 GPIO Configuration
-    PB9     ------> FDCAN1_TX
     PA11 [PA9]     ------> FDCAN1_RX
+    PA12 [PA10]     ------> FDCAN1_TX
     */
-        HAL_GPIO_DeInit(GPIOB, GPIO_PIN_9);
+        HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11 | GPIO_PIN_12);
 
-        HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11);
-
+        /* FDCAN1 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(FDCAN1_IT0_IRQn);
+        HAL_NVIC_DisableIRQ(FDCAN1_IT1_IRQn);
         /* USER CODE BEGIN FDCAN1_MspDeInit 1 */
 
         /* USER CODE END FDCAN1_MspDeInit 1 */
@@ -183,11 +181,25 @@ enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunication
 }
 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
+
     if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET) {
         FDCAN_RxHeaderTypeDef header = { 0 };
         struct CanCommunicationFrame msg = { 0 };
         HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &header, msg.data);
         HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+        msg.id = header.Identifier;
+        msg.length = (uint8_t)(header.DataLength >> 16U);
+        can_communication_api_add_to_rx_buffer(CAN_COMMUNICATION_NETWORK_PRIMARY, &msg);
+    }
+}
+
+void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs) {
+
+    if ((RxFifo1ITs & FDCAN_IT_RX_FIFO1_NEW_MESSAGE) != RESET) {
+        FDCAN_RxHeaderTypeDef header = { 0 };
+        struct CanCommunicationFrame msg = { 0 };
+        HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO1, &header, msg.data);
+        HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
         msg.id = header.Identifier;
         msg.length = (uint8_t)(header.DataLength >> 16U);
         can_communication_api_add_to_rx_buffer(CAN_COMMUNICATION_NETWORK_PRIMARY, &msg);

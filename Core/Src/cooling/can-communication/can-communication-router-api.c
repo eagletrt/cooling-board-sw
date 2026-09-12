@@ -9,6 +9,8 @@
 
 #include "can-communication-router-api.h"
 #include "can-primary-api.h"
+#include "can-primary.h"
+#include "control-api.h"
 #include "temperatures-api.h"
 
 EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages message) {
@@ -40,6 +42,21 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
             temperatures_api_set_temperature(TEMPERATURES_NAME_INVERTER_TEMPERATURE,
                                              inverter_temperature_max);
             break;
+        }
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_COOLINGCONTROLMODE: {
+            if (message.coolingcontrolmode.mode == CAN_PRIMARY_COOLINGCONTROLMODE_MODE_AUTO) {
+                control_api_set_mode(CONTROL_MODE_AUTOMATIC);
+            } else if (message.coolingcontrolmode.mode == CAN_PRIMARY_COOLINGCONTROLMODE_MODE_MODE_0) {
+                control_api_set_mode(CONTROL_MODE_0);
+            } else if (message.coolingcontrolmode.mode == CAN_PRIMARY_COOLINGCONTROLMODE_MODE_MODE_1) {
+                control_api_set_mode(CONTROL_MODE_25);
+            } else if (message.coolingcontrolmode.mode == CAN_PRIMARY_COOLINGCONTROLMODE_MODE_MODE_2) {
+                control_api_set_mode(CONTROL_MODE_50);
+            } else if (message.coolingcontrolmode.mode == CAN_PRIMARY_COOLINGCONTROLMODE_MODE_MODE_3) {
+                control_api_set_mode(CONTROL_MODE_75);
+            } else if (message.coolingcontrolmode.mode == CAN_PRIMARY_COOLINGCONTROLMODE_MODE_MODE_4) {
+                control_api_set_mode(CONTROL_MODE_100);
+            }
         }
         default:
             break;

@@ -27,6 +27,13 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
 void control_api_deinit(void);
 
 /*!
+ * \brief Sets the mode of the control module
+ *
+ * \param[in] mode The mode to set
+ */
+void control_api_set_mode(enum ControlMode mode);
+
+/*!
  * \brief Updates the internal status of the control module (status variables, config, etc...)
  */
 void control_api_update_internal_status(void);
@@ -34,58 +41,46 @@ void control_api_update_internal_status(void);
 /*!
  * \brief Updates the value of the output dedicated to the control of the left pump
  *
- * \param[in] control_mode The mode used to update the control output
- * \param[in] control_percentage The power percentage at which to run the pump
- *
  * \note The control percentage parameter is taken into account only if the mode is set to manual, otherwise it is ignored
  *
  * \retval CONTROL_RC_OK if the control output has been updated successfully
  * \retval CONTROL_RC_INVALID_MODE if the control mode is invalid
  * \retval CONTROL_RC_ERROR if there has been issue trying to update the control output
  */
-enum ControlReturnCode control_api_update_left_pump_output(enum ControlMode control_mode, float control_percentage);
+enum ControlReturnCode control_api_update_left_pump_output();
 
 /*!
  * \brief Updates the value of the output dedicated to the control of the left fan
  *
- * \param[in] control_mode The mode used to update the control output
- * \param[in] control_percentage The power percentage at which to run the fan
- *
  * \note The control percentage parameter is taken into account only if the mode is set to manual, otherwise it is ignored
  *
  * \retval CONTROL_RC_OK if the control output has been updated successfully
  * \retval CONTROL_RC_INVALID_MODE if the control mode is invalid
  * \retval CONTROL_RC_ERROR if there has been issue trying to update the control output
  */
-enum ControlReturnCode control_api_update_left_fan_output(enum ControlMode control_mode, float control_percentage);
+enum ControlReturnCode control_api_update_left_fan_output();
 
 /*!
  * \brief Updates the value of the output dedicated to the control of the right pump
  *
- * \param[in] control_mode The mode used to update the control output
- * \param[in] control_percentage The power percentage at which to run the pump
- *
  * \note The control percentage parameter is taken into account only if the mode is set to manual, otherwise it is ignored
  *
  * \retval CONTROL_RC_OK if the control output has been updated successfully
  * \retval CONTROL_RC_INVALID_MODE if the control mode is invalid
  * \retval CONTROL_RC_ERROR if there has been issue trying to update the control output
  */
-enum ControlReturnCode control_api_update_right_pump_output(enum ControlMode control_mode, float control_percentage);
+enum ControlReturnCode control_api_update_right_pump_output();
 
 /*!
  * \brief Updates the value of the output dedicated to the control of the right fan
  *
- * \param[in] control_mode The mode used to update the control output
- * \param[in] control_percentage The power percentage at which to run the fan
- *
  * \note The control percentage parameter is taken into account only if the mode is set to manual, otherwise it is ignored
  *
  * \retval CONTROL_RC_OK if the control output has been updated successfully
  * \retval CONTROL_RC_INVALID_MODE if the control mode is invalid
  * \retval CONTROL_RC_ERROR if there has been issue trying to update the control output
  */
-enum ControlReturnCode control_api_update_right_fan_output(enum ControlMode control_mode, float control_percentage);
+enum ControlReturnCode control_api_update_right_fan_output();
 
 /*!
  * \brief Returns the value of the specified control output

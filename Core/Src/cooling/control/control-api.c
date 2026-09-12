@@ -6,6 +6,7 @@
  */
 
 #include "control-api.h"
+#include "fsm.h"
 #include "temperatures-api.h"
 #include "can-communication-api.h"
 #include "can-primary-api.h"
@@ -49,11 +50,17 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
         }
     }
 
+    control_api_set_mode(CONTROL_MODE_AUTOMATIC);
+
     return return_code;
 }
 
 void control_api_deinit(void) {
     arena_allocator_api_free(&control_handler.harena);
+}
+
+void control_api_set_mode(enum ControlMode mode) {
+    control_handler.mode = mode;
 }
 
 void control_api_update_internal_status(void) {
@@ -99,20 +106,37 @@ void control_api_update_internal_status(void) {
         if (right_motors_max_temperature >= motors_maximum_admissible_temperature) {
             // TODO: decrease set point of right circuit PI configurations
         }
+
+        control_api_update_left_pump_output();
+        control_api_update_left_fan_output();
+        control_api_update_right_pump_output();
+        control_api_update_right_fan_output();
     }
 }
 
-EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlName control_name, enum ControlMode control_mode, float control_percentage) {
+EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlName control_name) {
     if (control_name >= CONTROL_NAME_COUNT) {
         return CONTROL_RC_INVALID_NAME;
     }
 
-    switch (control_mode) {
+    switch (control_handler.mode) {
         case CONTROL_MODE_AUTOMATIC:
             control_handler.output[control_name] = EAGLETRT_API_CLAMP(pid_controller_api_compute(&control_handler.pi_controller[control_name]), 0.F, 1.F);
             break;
-        case CONTROL_MODE_MANUAL:
-            control_handler.output[control_name] = EAGLETRT_API_CLAMP(control_percentage, 0.F, 1.F);
+        case CONTROL_MODE_0:
+            control_handler.output[control_name] = 0.F;
+            break;
+        case CONTROL_MODE_25:
+            control_handler.output[control_name] = 0.25F;
+            break;
+        case CONTROL_MODE_50:
+            control_handler.output[control_name] = 0.5F;
+            break;
+        case CONTROL_MODE_75:
+            control_handler.output[control_name] = 0.75F;
+            break;
+        case CONTROL_MODE_100:
+            control_handler.output[control_name] = 1.F;
             break;
         default:
             return CONTROL_RC_INVALID_MODE;
@@ -121,20 +145,20 @@ EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlNam
     return CONTROL_RC_OK;
 }
 
-enum ControlReturnCode control_api_update_left_pump_output(enum ControlMode control_mode, float control_percentage) {
-    return prv_control_update_output(CONTROL_NAME_LEFT_PUMP, control_mode, control_percentage);
+enum ControlReturnCode control_api_update_left_pump_output() {
+    return prv_control_update_output(CONTROL_NAME_LEFT_PUMP);
 }
 
-enum ControlReturnCode control_api_update_left_fan_output(enum ControlMode control_mode, float control_percentage) {
-    return prv_control_update_output(CONTROL_NAME_LEFT_FAN, control_mode, control_percentage);
+enum ControlReturnCode control_api_update_left_fan_output() {
+    return prv_control_update_output(CONTROL_NAME_LEFT_FAN);
 }
 
-enum ControlReturnCode control_api_update_right_pump_output(enum ControlMode control_mode, float control_percentage) {
-    return prv_control_update_output(CONTROL_NAME_RIGHT_PUMP, control_mode, control_percentage);
+enum ControlReturnCode control_api_update_right_pump_output() {
+    return prv_control_update_output(CONTROL_NAME_RIGHT_PUMP);
 }
 
-enum ControlReturnCode control_api_update_right_fan_output(enum ControlMode control_mode, float control_percentage) {
-    return prv_control_update_output(CONTROL_NAME_RIGHT_FAN, control_mode, control_percentage);
+enum ControlReturnCode control_api_update_right_fan_output() {
+    return prv_control_update_output(CONTROL_NAME_RIGHT_FAN);
 }
 
 float control_api_get_output(enum ControlName control_name) {

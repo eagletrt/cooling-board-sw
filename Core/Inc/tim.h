@@ -58,3 +58,4 @@ enum ControlReturnCode tim_pwm_set_control(enum ControlName control_name, float 
 #endif
 
 #endif /* __TIM_H__ */
+
