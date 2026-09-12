@@ -239,7 +239,7 @@ uint32_t control_to_tim_channel_map[CONTROL_NAME_COUNT] = {
 enum ControlReturnCode tim_pwm_set_control(enum ControlName control_name, float percentage) {
     // calculate ARR based on target frequency
     // ARR = (f_clk / (f_pwm * (PSC + 1))) - 1
-    constexpr uint32_t frequency = 1000U;
+    constexpr uint32_t frequency = 10000U;
 
     uint32_t timer_clk = HAL_RCC_GetPCLK1Freq();
     uint32_t psc = htim3.Instance->PSC;

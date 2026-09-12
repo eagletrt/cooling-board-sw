@@ -141,10 +141,12 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
                                control_api_get_output(CONTROL_NAME_RIGHT_PUMP));
 
     // test usart tx
+    /*
     usart_log("left pump control: %.2f\r\n", control_api_get_output(CONTROL_NAME_LEFT_PUMP));
     usart_log("left fan control: %.2f\r\n", control_api_get_output(CONTROL_NAME_LEFT_FAN));
     usart_log("right pump control: %.2f\r\n", control_api_get_output(CONTROL_NAME_RIGHT_PUMP));
     usart_log("right fan control: %.2f\r\n", control_api_get_output(CONTROL_NAME_RIGHT_FAN));
+    */
 
     // test can send
     control_api_periodically_send_outputs(fsm_idle_data->get_tick());

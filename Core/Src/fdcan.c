@@ -24,6 +24,7 @@
 
 #include "eagletrt-api.h"
 #include "can-communication-api.h"
+#include "usart.h"
 
 /* USER CODE END 0 */
 
@@ -156,6 +157,18 @@ EAGLETRT_STATIC uint32_t prv_fdcan_get_header_length(uint8_t length) {
 }
 
 enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunicationFrame *frame) {
+    // Read PSR exactly once per send: reading it clears LastErrorCode, so this
+    // snapshot reflects the outcome of the previous frame on the bus.
+    FDCAN_ProtocolStatusTypeDef status;
+    HAL_FDCAN_GetProtocolStatus(&hfdcan1, &status);
+
+    // Bus-off recovery: the controller sets CCCR.INIT on bus-off and stays
+    // there until software clears it (ISO 11898-1 restart after 128 x 11 recessive bits)
+    if (status.BusOff != 0U) {
+        CLEAR_BIT(hfdcan1.Instance->CCCR, FDCAN_CCCR_INIT);
+        usart_log("bus-off, restarting\n\r");
+    }
+
     FDCAN_TxHeaderTypeDef header = {
         .Identifier = frame->id,
         .IdType = FDCAN_STANDARD_ID,
@@ -175,8 +188,16 @@ enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunication
     header.DataLength = dlc;
 
     if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &header, frame->data) != HAL_OK) {
+        usart_log("tx fifo add failed: hal err 0x%lx\n\r", HAL_FDCAN_GetError(&hfdcan1));
         return CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
     }
+
+    // debug: previous frame outcome + error counters (TEC/REC) from ECR
+    const uint32_t ecr = hfdcan1.Instance->ECR;
+    usart_log("Sent 0x%lx len %u | prev lec %lu ep %lu bo %lu tec %lu rec %lu\n\r",
+              frame->id, frame->length, status.LastErrorCode, status.ErrorPassive, status.BusOff,
+              ecr & FDCAN_ECR_TEC, (ecr & FDCAN_ECR_REC) >> FDCAN_ECR_REC_Pos);
+
     return CAN_COMMUNICATION_RC_OK;
 }
 
@@ -188,8 +209,9 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
         HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &header, msg.data);
         HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
         msg.id = header.Identifier;
-        msg.length = (uint8_t)(header.DataLength >> 16U);
+        msg.length = (uint8_t)header.DataLength;
         can_communication_api_add_to_rx_buffer(CAN_COMMUNICATION_NETWORK_PRIMARY, &msg);
+        usart_log("Received\n\r");
     }
 }
 
@@ -201,8 +223,9 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
         HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO1, &header, msg.data);
         HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
         msg.id = header.Identifier;
-        msg.length = (uint8_t)(header.DataLength >> 16U);
+        msg.length = (uint8_t)header.DataLength;
         can_communication_api_add_to_rx_buffer(CAN_COMMUNICATION_NETWORK_PRIMARY, &msg);
+        usart_log("Received\n\r");
     }
 }
 

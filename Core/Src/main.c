@@ -33,8 +33,6 @@
 #include "can-communication-router-api.h"
 #include "control-api.h"
 
-#include "stm32c0xx_hal_tim.h"
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -126,7 +124,7 @@ int main(void) {
         },
     };
 
-    current_state = fsm_run_state(current_state, &post_init_data);
+    // current_state = fsm_run_state(current_state, &post_init_data);
 
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
@@ -136,25 +134,49 @@ int main(void) {
         .set_control = tim_pwm_set_control
     };
 
-    // hardware testing
-    /*
-    tim_pwm_set_control(CONTROL_NAME_LEFT_FAN, 0.5F);
-    tim_pwm_set_control(CONTROL_NAME_LEFT_PUMP, 0.5F);
-    tim_pwm_set_control(CONTROL_NAME_RIGHT_FAN, 0.5F);
-    tim_pwm_set_control(CONTROL_NAME_RIGHT_PUMP, 0.5F);
+    float fan_target = 0.69F;
+    float pump_target = 0.85F;
 
+    // hardware testing
+    tim_pwm_set_control(CONTROL_NAME_LEFT_FAN, 1.0F);
+    tim_pwm_set_control(CONTROL_NAME_LEFT_PUMP, 0.0F);
+    tim_pwm_set_control(CONTROL_NAME_RIGHT_FAN, 1.0F);
+    tim_pwm_set_control(CONTROL_NAME_RIGHT_PUMP, 0.0F);
+
+    /*
     tim_pwm_set_control(CONTROL_NAME_LEFT_FAN, control_api_get_output(CONTROL_NAME_LEFT_FAN));
     tim_pwm_set_control(CONTROL_NAME_LEFT_PUMP, control_api_get_output(CONTROL_NAME_LEFT_PUMP));
     tim_pwm_set_control(CONTROL_NAME_RIGHT_FAN, control_api_get_output(CONTROL_NAME_RIGHT_FAN));
     tim_pwm_set_control(CONTROL_NAME_RIGHT_PUMP, control_api_get_output(CONTROL_NAME_RIGHT_PUMP));
     */
 
+    float fan_actual = 0.0F;
+    float pump_actual = 0.0F;
+    uint32_t slew_start_time = HAL_GetTick();
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        current_state = fsm_run_state(current_state, &fsm_data);
+        // current_state = fsm_run_state(current_state, &fsm_data);
+
+        // slew over 10 seconds to the target values
+        uint32_t elapsed_time = HAL_GetTick() - slew_start_time;
+        if (elapsed_time < 10000) {
+            float slew_factor = (float)elapsed_time / 10000.0F;
+            fan_actual = slew_factor * fan_target;
+            pump_actual = slew_factor * pump_target;
+            usart_log("Slewing: fan_actual=%.2f, pump_actual=%.2f\n\r", fan_actual, pump_actual);
+        } else {
+            fan_actual = fan_target;
+            pump_actual = pump_target;
+            usart_log("Reached target: fan_actual=%.2f, pump_actual=%.2f\n\r", fan_actual, pump_actual);
+        }
+
+        tim_pwm_set_control(CONTROL_NAME_LEFT_FAN, (1.0F - fan_actual));
+        tim_pwm_set_control(CONTROL_NAME_LEFT_PUMP, (pump_actual));
+        tim_pwm_set_control(CONTROL_NAME_RIGHT_FAN, (1.0F - fan_actual));
+        tim_pwm_set_control(CONTROL_NAME_RIGHT_PUMP, (pump_actual));
 
         /* USER CODE END WHILE */
 
