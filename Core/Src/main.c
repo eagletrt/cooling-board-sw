@@ -135,7 +135,7 @@ int main(void) {
     };
 
     float fan_target = 0.69F;
-    float pump_target = 0.85F;
+    float pump_target = 0.625F;
 
     // hardware testing
     tim_pwm_set_control(CONTROL_NAME_LEFT_FAN, 1.0F);
