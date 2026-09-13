@@ -241,10 +241,28 @@ EAGLETRT_STATIC const uint32_t control_to_tim_channel_map[CONTROL_NAME_COUNT] = 
     [CONTROL_NAME_RIGHT_FAN] = TIM_CHANNEL_1
 };
 
+EAGLETRT_STATIC const float tim_pwm_levels[CONTROL_NAME_COUNT][TIM_PWM_LEVELS_COUNT] = {
+    [CONTROL_NAME_LEFT_PUMP] = TIM_PWM_LEFT_PUMP_LEVELS,
+    [CONTROL_NAME_LEFT_FAN] = TIM_PWM_LEFT_FAN_LEVELS,
+    [CONTROL_NAME_RIGHT_PUMP] = TIM_PWM_RIGHT_PUMP_LEVELS,
+    [CONTROL_NAME_RIGHT_FAN] = TIM_PWM_RIGHT_FAN_LEVELS
+};
+
 /*!
- * \brief Map a control percentage to the duty cycle to write on the pin.
+ * \brief Slew limiter state, one per actuator
  */
-EAGLETRT_STATIC float prv_tim_pwm_percentage_to_duty(enum ControlName control_name, float percentage) {
+EAGLETRT_STATIC struct {
+    float level;        /*!< Level currently applied to the pin */
+    uint32_t last_tick; /*!< Tick of the last update, ms */
+} tim_pwm_slew[CONTROL_NAME_COUNT];
+
+/*!
+ * \brief Map a control percentage to an output level in [0, 1].
+ * \details The percentage is looked up in the actuator's level table.
+ *     The manual modes (0/25/50/75/100 %) land exactly on a table entry; any
+ *     other value (AUTO) is linearly interpolated between the two neighbours.
+ */
+EAGLETRT_STATIC float prv_tim_pwm_percentage_to_level(enum ControlName control_name, float percentage) {
     // NaN compares false against everything, so this also turns NaN into 0
     if (!(percentage >= 0.F)) {
         percentage = 0.F;
@@ -252,19 +270,59 @@ EAGLETRT_STATIC float prv_tim_pwm_percentage_to_duty(enum ControlName control_na
         percentage = 1.F;
     }
 
-    float level;
+    const float *levels = tim_pwm_levels[control_name];
+    const float position = percentage * (float)(TIM_PWM_LEVELS_COUNT - 1U);
+    uint8_t lower = (uint8_t)position;
+    if (lower >= TIM_PWM_LEVELS_COUNT - 1U) {
+        lower = TIM_PWM_LEVELS_COUNT - 1U;
+    }
+    const uint8_t upper = (lower + 1U < TIM_PWM_LEVELS_COUNT) ? (uint8_t)(lower + 1U) : lower;
+    const float fraction = position - (float)lower;
+    return levels[lower] + fraction * (levels[upper] - levels[lower]);
+}
+
+/*!
+ * \brief Move the applied level toward \p target, no faster than the configured slew rate.
+ */
+EAGLETRT_STATIC float prv_tim_pwm_slew(enum ControlName control_name, float target, uint32_t tick) {
+    const uint32_t elapsed_ms = tick - tim_pwm_slew[control_name].last_tick;
+    tim_pwm_slew[control_name].last_tick = tick;
+
+    float level = tim_pwm_slew[control_name].level;
+    const float delta = target - level;
+    const float full_scale_seconds = (delta >= 0.F) ? TIM_PWM_SLEW_UP_SECONDS : TIM_PWM_SLEW_DOWN_SECONDS;
+
+    if (full_scale_seconds <= 0.F) {
+        level = target;
+    } else {
+        const float max_step = (float)elapsed_ms / (full_scale_seconds * 1000.F);
+        if (delta > max_step) {
+            level += max_step;
+        } else if (delta < -max_step) {
+            level -= max_step;
+        } else {
+            level = target;
+        }
+    }
+
+    tim_pwm_slew[control_name].level = level;
+    return level;
+}
+
+/*!
+ * \brief Duty cycle to write on the pin for a given output level.
+ */
+EAGLETRT_STATIC float prv_tim_pwm_level_to_duty(enum ControlName control_name, float level) {
     bool inverted;
     switch (control_name) {
-        case CONTROL_NAME_LEFT_PUMP:
-        case CONTROL_NAME_RIGHT_PUMP:
-            level = TIM_PWM_PUMP_MIN_DUTY + percentage * (TIM_PWM_PUMP_MAX_DUTY - TIM_PWM_PUMP_MIN_DUTY);
-            inverted = false;
-            break;
         case CONTROL_NAME_LEFT_FAN:
         case CONTROL_NAME_RIGHT_FAN:
-        default:
-            level = TIM_PWM_FAN_MIN_DUTY + percentage * (TIM_PWM_FAN_MAX_DUTY - TIM_PWM_FAN_MIN_DUTY);
             inverted = (TIM_PWM_FAN_INVERTED != 0);
+            break;
+        case CONTROL_NAME_LEFT_PUMP:
+        case CONTROL_NAME_RIGHT_PUMP:
+        default:
+            inverted = false;
             break;
     }
 
@@ -280,7 +338,11 @@ enum ControlReturnCode tim_pwm_start(void) {
     __HAL_TIM_SET_AUTORELOAD(&htim3, arr);
 
     enum ControlReturnCode return_code = CONTROL_RC_OK;
+    const uint32_t now = HAL_GetTick();
     for (uint8_t control_name = 0; control_name < CONTROL_NAME_COUNT; ++control_name) {
+        // start from OFF so the first ramp begins at zero, not at a stale value
+        tim_pwm_slew[control_name].level = 0.F;
+        tim_pwm_slew[control_name].last_tick = now;
         if (tim_pwm_set_control((enum ControlName)control_name, 0.F) != CONTROL_RC_OK) {
             return_code = CONTROL_RC_ERROR;
         }
@@ -300,7 +362,9 @@ enum ControlReturnCode tim_pwm_set_control(enum ControlName control_name, float 
         return CONTROL_RC_INVALID_NAME;
     }
 
-    const float duty = prv_tim_pwm_percentage_to_duty(control_name, percentage);
+    const float target = prv_tim_pwm_percentage_to_level(control_name, percentage);
+    const float level = prv_tim_pwm_slew(control_name, target, HAL_GetTick());
+    const float duty = prv_tim_pwm_level_to_duty(control_name, level);
 
     // PWM1: output high while CNT < CCR, so CCR = ARR + 1 is a solid 100%
     const uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim3);

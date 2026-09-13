@@ -43,19 +43,33 @@ extern TIM_HandleTypeDef htim3;
 /*
  * Actuator PWM tuning.
  *
- * The control module produces a percentage in [0, 1] for every actuator.
- * It is mapped linearly onto [MIN_DUTY, MAX_DUTY] here, so 0% -> MIN_DUTY and
- * 100% -> MAX_DUTY. Fans are wired active-low: the duty written to the pin is
- * (1 - level) when TIM_PWM_FAN_INVERTED is 1.
+ * Every actuator has its own table of output levels, one entry per control
+ * mode: { 0%, 25%, 50%, 75%, 100% }. A level is in [0, 1] where 0 is OFF and
+ * 1 is full speed, for pumps and fans alike. The manual modes pick a table
+ * entry directly; AUTO (continuous PI output) interpolates between entries.
+ *
+ * Fans are wired active-low: the duty actually written to the pin is
+ * (1 - level) when TIM_PWM_FAN_INVERTED is 1, so 0 still means OFF here.
  */
 #define TIM_PWM_FREQUENCY_HZ (10000U)
-
-#define TIM_PWM_PUMP_MIN_DUTY (0.20F)
-#define TIM_PWM_PUMP_MAX_DUTY (1.00F)
-
-#define TIM_PWM_FAN_MIN_DUTY (0.25F)
-#define TIM_PWM_FAN_MAX_DUTY (1.00F)
 #define TIM_PWM_FAN_INVERTED (1)
+
+/*
+ * Slew rate limiting, applied to the level before it reaches the pin.
+ * Each value is the time a full-scale change (0 -> 1 or 1 -> 0) takes, in
+ * seconds; smaller steps scale proportionally. 0 disables limiting in that
+ * direction (the new level is applied immediately).
+ */
+#define TIM_PWM_SLEW_UP_SECONDS (5.0F)
+#define TIM_PWM_SLEW_DOWN_SECONDS (2.0F)
+
+#define TIM_PWM_LEVELS_COUNT (5U)
+
+/*                                    0%     25%    50%    75%    100%  */
+#define TIM_PWM_LEFT_PUMP_LEVELS  { 0.00F, 0.40F, 0.60F, 0.80F, 1.00F }
+#define TIM_PWM_RIGHT_PUMP_LEVELS { 0.00F, 0.40F, 0.60F, 0.80F, 1.00F }
+#define TIM_PWM_LEFT_FAN_LEVELS   { 0.00F, 0.45F, 0.69F, 0.85F, 1.00F }
+#define TIM_PWM_RIGHT_FAN_LEVELS  { 0.00F, 0.45F, 0.69F, 0.85F, 1.00F }
 
 /* USER CODE END Private defines */
 
