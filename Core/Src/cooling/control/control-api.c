@@ -64,7 +64,9 @@ void control_api_set_mode(enum ControlMode mode) {
 }
 
 void control_api_update_internal_status(void) {
-    if (temperatures_api_get_temperatures_status() == true) {
+    // The PI controllers only make sense with fresh temperatures; the manual
+    // modes must keep working even if no temperature message ever arrives.
+    if (control_handler.mode == CONTROL_MODE_AUTOMATIC && temperatures_api_get_temperatures_status() == true) {
         float front_left_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_FRONT_LEFT_MOTOR_INTERNAL_TEMPERATURE);
         float rear_left_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_REAR_LEFT_MOTOR_INTERNAL_TEMPERATURE);
         float front_right_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_FRONT_RIGHT_MOTOR_INTERNAL_TEMPERATURE);
@@ -106,12 +108,12 @@ void control_api_update_internal_status(void) {
         if (right_motors_max_temperature >= motors_maximum_admissible_temperature) {
             // TODO: decrease set point of right circuit PI configurations
         }
-
-        control_api_update_left_pump_output();
-        control_api_update_left_fan_output();
-        control_api_update_right_pump_output();
-        control_api_update_right_fan_output();
     }
+
+    control_api_update_left_pump_output();
+    control_api_update_left_fan_output();
+    control_api_update_right_pump_output();
+    control_api_update_right_fan_output();
 }
 
 EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlName control_name) {

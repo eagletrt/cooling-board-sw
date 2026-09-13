@@ -40,6 +40,23 @@ extern TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN Private defines */
 
+/*
+ * Actuator PWM tuning.
+ *
+ * The control module produces a percentage in [0, 1] for every actuator.
+ * It is mapped linearly onto [MIN_DUTY, MAX_DUTY] here, so 0% -> MIN_DUTY and
+ * 100% -> MAX_DUTY. Fans are wired active-low: the duty written to the pin is
+ * (1 - level) when TIM_PWM_FAN_INVERTED is 1.
+ */
+#define TIM_PWM_FREQUENCY_HZ (10000U)
+
+#define TIM_PWM_PUMP_MIN_DUTY (0.20F)
+#define TIM_PWM_PUMP_MAX_DUTY (1.00F)
+
+#define TIM_PWM_FAN_MIN_DUTY (0.25F)
+#define TIM_PWM_FAN_MAX_DUTY (1.00F)
+#define TIM_PWM_FAN_INVERTED (1)
+
 /* USER CODE END Private defines */
 
 void MX_TIM1_Init(void);
@@ -49,6 +66,18 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */
 
+/*!
+ * \brief Configure the PWM period and start every actuator channel at 0%.
+ * \note Must be called once after MX_TIM3_Init and before tim_pwm_set_control.
+ */
+enum ControlReturnCode tim_pwm_start(void);
+
+/*!
+ * \brief Apply a control percentage to an actuator.
+ *
+ * \param[in] control_name Actuator to drive.
+ * \param[in] percentage   Control effort in [0, 1]; out-of-range values are clamped.
+ */
 enum ControlReturnCode tim_pwm_set_control(enum ControlName control_name, float percentage);
 
 /* USER CODE END Prototypes */

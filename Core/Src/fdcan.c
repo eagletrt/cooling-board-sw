@@ -157,8 +157,6 @@ EAGLETRT_STATIC uint32_t prv_fdcan_get_header_length(uint8_t length) {
 }
 
 enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunicationFrame *frame) {
-    // Read PSR exactly once per send: reading it clears LastErrorCode, so this
-    // snapshot reflects the outcome of the previous frame on the bus.
     FDCAN_ProtocolStatusTypeDef status;
     HAL_FDCAN_GetProtocolStatus(&hfdcan1, &status);
 
@@ -192,12 +190,6 @@ enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunication
         return CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
     }
 
-    // debug: previous frame outcome + error counters (TEC/REC) from ECR
-    const uint32_t ecr = hfdcan1.Instance->ECR;
-    usart_log("Sent 0x%lx len %u | prev lec %lu ep %lu bo %lu tec %lu rec %lu\n\r",
-              frame->id, frame->length, status.LastErrorCode, status.ErrorPassive, status.BusOff,
-              ecr & FDCAN_ECR_TEC, (ecr & FDCAN_ECR_REC) >> FDCAN_ECR_REC_Pos);
-
     return CAN_COMMUNICATION_RC_OK;
 }
 
@@ -211,7 +203,6 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
         msg.id = header.Identifier;
         msg.length = (uint8_t)header.DataLength;
         can_communication_api_add_to_rx_buffer(CAN_COMMUNICATION_NETWORK_PRIMARY, &msg);
-        usart_log("Received\n\r");
     }
 }
 
@@ -225,7 +216,6 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
         msg.id = header.Identifier;
         msg.length = (uint8_t)header.DataLength;
         can_communication_api_add_to_rx_buffer(CAN_COMMUNICATION_NETWORK_PRIMARY, &msg);
-        usart_log("Received\n\r");
     }
 }
 

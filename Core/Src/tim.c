@@ -22,6 +22,11 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "eagletrt.h"
+
+#include <math.h>
+#include <stdbool.h>
+
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
@@ -229,36 +234,78 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
 /* USER CODE BEGIN 1 */
 
-uint32_t control_to_tim_channel_map[CONTROL_NAME_COUNT] = {
+EAGLETRT_STATIC const uint32_t control_to_tim_channel_map[CONTROL_NAME_COUNT] = {
     [CONTROL_NAME_LEFT_PUMP] = TIM_CHANNEL_3,
     [CONTROL_NAME_LEFT_FAN] = TIM_CHANNEL_4,
     [CONTROL_NAME_RIGHT_PUMP] = TIM_CHANNEL_2,
     [CONTROL_NAME_RIGHT_FAN] = TIM_CHANNEL_1
 };
 
-enum ControlReturnCode tim_pwm_set_control(enum ControlName control_name, float percentage) {
-    // calculate ARR based on target frequency
-    // ARR = (f_clk / (f_pwm * (PSC + 1))) - 1
-    constexpr uint32_t frequency = 10000U;
+/*!
+ * \brief Map a control percentage to the duty cycle to write on the pin.
+ */
+EAGLETRT_STATIC float prv_tim_pwm_percentage_to_duty(enum ControlName control_name, float percentage) {
+    // NaN compares false against everything, so this also turns NaN into 0
+    if (!(percentage >= 0.F)) {
+        percentage = 0.F;
+    } else if (percentage > 1.F) {
+        percentage = 1.F;
+    }
 
-    uint32_t timer_clk = HAL_RCC_GetPCLK1Freq();
-    uint32_t psc = htim3.Instance->PSC;
+    float level;
+    bool inverted;
+    switch (control_name) {
+        case CONTROL_NAME_LEFT_PUMP:
+        case CONTROL_NAME_RIGHT_PUMP:
+            level = TIM_PWM_PUMP_MIN_DUTY + percentage * (TIM_PWM_PUMP_MAX_DUTY - TIM_PWM_PUMP_MIN_DUTY);
+            inverted = false;
+            break;
+        case CONTROL_NAME_LEFT_FAN:
+        case CONTROL_NAME_RIGHT_FAN:
+        default:
+            level = TIM_PWM_FAN_MIN_DUTY + percentage * (TIM_PWM_FAN_MAX_DUTY - TIM_PWM_FAN_MIN_DUTY);
+            inverted = (TIM_PWM_FAN_INVERTED != 0);
+            break;
+    }
 
-    // ensure no division by zero
-    uint32_t arr = (timer_clk / (frequency * (psc + 1))) - 1;
+    return inverted ? (1.F - level) : level;
+}
+
+enum ControlReturnCode tim_pwm_start(void) {
+    // ARR = f_tim / (f_pwm * (PSC + 1)) - 1
+    // TIM3 sits on APB; with the APB prescaler at DIV1 the timer clock equals PCLK1.
+    const uint32_t timer_clk = HAL_RCC_GetPCLK1Freq();
+    const uint32_t psc = htim3.Instance->PSC;
+    const uint32_t arr = (timer_clk / (TIM_PWM_FREQUENCY_HZ * (psc + 1U))) - 1U;
     __HAL_TIM_SET_AUTORELOAD(&htim3, arr);
 
-    // calculate pulse (CCR) for Duty Cycle
-    // since amplitude is [0, 1], pulse = ARR * amplitude
-    uint32_t pulse = (uint32_t)((float)arr * percentage);
-    __HAL_TIM_SET_COMPARE(&htim3, control_to_tim_channel_map[control_name], pulse);
+    enum ControlReturnCode return_code = CONTROL_RC_OK;
+    for (uint8_t control_name = 0; control_name < CONTROL_NAME_COUNT; ++control_name) {
+        if (tim_pwm_set_control((enum ControlName)control_name, 0.F) != CONTROL_RC_OK) {
+            return_code = CONTROL_RC_ERROR;
+        }
+        if (HAL_TIM_PWM_Start(&htim3, control_to_tim_channel_map[control_name]) != HAL_OK) {
+            return_code = CONTROL_RC_ERROR;
+        }
+    }
 
-    // "flush" ARR and CCR registers
+    // load ARR and the preloaded CCRs once; afterwards CCR updates land at the next period
     htim3.Instance->EGR = TIM_EGR_UG;
 
-    if (HAL_TIM_PWM_Start(&htim3, control_to_tim_channel_map[control_name]) != HAL_OK) {
-        return CONTROL_RC_ERROR;
+    return return_code;
+}
+
+enum ControlReturnCode tim_pwm_set_control(enum ControlName control_name, float percentage) {
+    if (control_name >= CONTROL_NAME_COUNT) {
+        return CONTROL_RC_INVALID_NAME;
     }
+
+    const float duty = prv_tim_pwm_percentage_to_duty(control_name, percentage);
+
+    // PWM1: output high while CNT < CCR, so CCR = ARR + 1 is a solid 100%
+    const uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim3);
+    const uint32_t pulse = (uint32_t)lroundf(duty * (float)(arr + 1U));
+    __HAL_TIM_SET_COMPARE(&htim3, control_to_tim_channel_map[control_name], pulse);
 
     return CONTROL_RC_OK;
 }

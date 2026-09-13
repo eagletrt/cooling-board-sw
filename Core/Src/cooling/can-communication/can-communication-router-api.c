@@ -57,6 +57,7 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
             } else if (message.coolingcontrolmode.mode == CAN_PRIMARY_COOLINGCONTROLMODE_MODE_MODE_4) {
                 control_api_set_mode(CONTROL_MODE_100);
             }
+            break;
         }
         default:
             break;
@@ -73,7 +74,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(con
     }
 
     union CanPrimaryMessages message = { 0 };
-    if (can_primary_api_deserialize_from_id(frame->id, frame->data, &message) != 0) {
+    if (can_primary_api_deserialize_from_id(frame->id, (uint8_t *)frame->data, &message) != 0) {
         return CAN_COMMUNICATION_RC_ERROR;
     }
 
