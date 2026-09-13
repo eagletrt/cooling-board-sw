@@ -50,7 +50,8 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
         }
     }
 
-    control_api_set_mode(CONTROL_MODE_AUTOMATIC);
+    // control_api_set_mode(CONTROL_MODE_AUTOMATIC);
+    control_api_set_mode(CONTROL_MODE_50);
 
     return return_code;
 }
