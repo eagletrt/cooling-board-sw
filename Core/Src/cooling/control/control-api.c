@@ -23,18 +23,6 @@ EAGLETRT_STATIC struct ControlHandler control_handler;
  */
 constexpr float control_invalid_output = -1.F;
 
-/*!
- * \brief Time without a CoolingSteeringWheelSet message after which the
- *     outputs fall back to control_timeout_fallback_output.
- * \details Two missed cycles of the message (5 s each -> 10 s).
- */
-constexpr uint32_t control_set_message_timeout_ms = 2U * (uint32_t)can_primary_cycle_time_coolingsteeringwheelset;
-
-/*!
- * \brief Output applied to every actuator while the set message is missing
- */
-constexpr float control_timeout_fallback_output = 0.7F;
-
 enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configurations[CONTROL_NAME_COUNT]) {
     if (pi_configurations == nullptr) {
         return CONTROL_RC_NULL_POINTER;
@@ -63,6 +51,10 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
 
     // control_api_set_mode(CONTROL_MODE_AUTOMATIC);
     control_api_set_mode(CONTROL_MODE_MANUAL);
+    control_api_update_left_fan_output(0.70F);
+    control_api_update_left_pump_output(0.70F);
+    control_api_update_right_fan_output(0.70F);
+    control_api_update_right_pump_output(0.70F);
 
     return return_code;
 }
@@ -158,15 +150,9 @@ enum ControlReturnCode control_api_update_right_fan_output(float percentage) {
     return prv_control_update_output(CONTROL_NAME_RIGHT_FAN, percentage);
 }
 
-float control_api_get_output(enum ControlName control_name, uint32_t tick) {
+float control_api_get_output(enum ControlName control_name) {
     if (control_name >= CONTROL_NAME_COUNT) {
         return control_invalid_output;
-    }
-
-    // Stay on the fallback until a new set message actually arrives; the
-    // timestamp is only refreshed by control_api_set_last_message_rx_tick.
-    if (tick - control_handler.last_manual_mode_received_tick >= control_set_message_timeout_ms) {
-        return control_timeout_fallback_output;
     }
 
     return control_handler.output[control_name];
@@ -192,10 +178,3 @@ enum ControlReturnCode control_api_periodically_send_outputs(uint32_t tick) {
     return CONTROL_RC_OK;
 }
 
-void control_api_set_last_message_rx_tick(uint32_t tick) {
-    control_handler.last_manual_mode_received_tick = tick;
-}
-
-uint32_t control_api_get_last_message_rx_tick(void) {
-    return control_handler.last_manual_mode_received_tick;
-}

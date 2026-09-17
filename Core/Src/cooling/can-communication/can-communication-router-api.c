@@ -12,7 +12,6 @@
 #include "can-primary.h"
 #include "control-api.h"
 #include "temperatures-api.h"
-#include "stm32c0xx_hal.h"
 
 EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages message) {
     switch (id) {
@@ -62,18 +61,15 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
             break;
         }
         */
-        case CAN_PRIMARY_MESSAGE_FRAME_ID_COOLINGSTEERINGWHEELSET: {
-            // FIXME: I can't think of a better way to get the tick right now
-            control_api_set_last_message_rx_tick(HAL_GetTick());
-
-            if (message.coolingsteeringwheelset.modeauto == true) {
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_COOLINGRASPBERRYSET: {
+            if (message.coolingraspberryset.modeauto == true) {
                 control_api_set_mode(CONTROL_MODE_AUTOMATIC);
             } else {
                 control_api_set_mode(CONTROL_MODE_MANUAL);
-                control_api_update_left_pump_output(message.coolingsteeringwheelset.pumpleft);
-                control_api_update_right_pump_output(message.coolingsteeringwheelset.pumpright);
-                control_api_update_left_fan_output(message.coolingsteeringwheelset.fanleft);
-                control_api_update_right_fan_output(message.coolingsteeringwheelset.fanright);
+                control_api_update_left_pump_output(message.coolingraspberryset.pumpleft);
+                control_api_update_right_pump_output(message.coolingraspberryset.pumpright);
+                control_api_update_left_fan_output(message.coolingraspberryset.fanleft);
+                control_api_update_right_fan_output(message.coolingraspberryset.fanright);
             }
             break;
         }

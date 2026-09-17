@@ -141,13 +141,13 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
     */
 
     fsm_idle_data->set_control(CONTROL_NAME_LEFT_FAN,
-                               control_api_get_output(CONTROL_NAME_LEFT_FAN, fsm_idle_data->get_tick()));
+                               control_api_get_output(CONTROL_NAME_LEFT_FAN));
     fsm_idle_data->set_control(CONTROL_NAME_LEFT_PUMP,
-                               control_api_get_output(CONTROL_NAME_LEFT_PUMP, fsm_idle_data->get_tick()));
+                               control_api_get_output(CONTROL_NAME_LEFT_PUMP));
     fsm_idle_data->set_control(CONTROL_NAME_RIGHT_FAN,
-                               control_api_get_output(CONTROL_NAME_RIGHT_FAN, fsm_idle_data->get_tick()));
+                               control_api_get_output(CONTROL_NAME_RIGHT_FAN));
     fsm_idle_data->set_control(CONTROL_NAME_RIGHT_PUMP,
-                               control_api_get_output(CONTROL_NAME_RIGHT_PUMP, fsm_idle_data->get_tick()));
+                               control_api_get_output(CONTROL_NAME_RIGHT_PUMP));
 
     // test usart tx
     /*

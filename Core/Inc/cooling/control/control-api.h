@@ -88,7 +88,7 @@ enum ControlReturnCode control_api_update_right_fan_output(float percentage);
  * \param[in] control_name The name of the control output
  * \return The value of the control output
  */
-float control_api_get_output(enum ControlName control_name, uint32_t tick);
+float control_api_get_output(enum ControlName control_name);
 
 /*!
  * \brief Periodically send the value of the outputs
@@ -96,9 +96,5 @@ float control_api_get_output(enum ControlName control_name, uint32_t tick);
  * \param[in] tick The current time tick in ms
  */
 enum ControlReturnCode control_api_periodically_send_outputs(uint32_t tick);
-
-void control_api_set_last_message_rx_tick(uint32_t tick);
-
-uint32_t control_api_get_last_message_rx_tick(void);
 
 #endif // CONTROL_API_H
