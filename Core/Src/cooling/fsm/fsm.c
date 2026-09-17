@@ -25,8 +25,6 @@ Functions and types have been generated with prefix "fsm_"
 #include "control-api.h"
 #include "identity-api.h"
 
-#include "usart.h"
-
 /* USER CODE END Includes */
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!

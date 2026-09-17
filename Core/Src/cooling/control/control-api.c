@@ -6,7 +6,6 @@
  */
 
 #include "control-api.h"
-#include "fsm.h"
 #include "temperatures-api.h"
 #include "can-communication-api.h"
 #include "can-primary-api.h"
@@ -23,6 +22,18 @@ EAGLETRT_STATIC struct ControlHandler control_handler;
  * \brief Invalid control output value
  */
 constexpr float control_invalid_output = -1.F;
+
+/*!
+ * \brief Time without a CoolingSteeringWheelSet message after which the
+ *     outputs fall back to control_timeout_fallback_output.
+ * \details Two missed cycles of the message (5 s each -> 10 s).
+ */
+constexpr uint32_t control_set_message_timeout_ms = 2U * (uint32_t)can_primary_cycle_time_coolingsteeringwheelset;
+
+/*!
+ * \brief Output applied to every actuator while the set message is missing
+ */
+constexpr float control_timeout_fallback_output = 0.7F;
 
 enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configurations[CONTROL_NAME_COUNT]) {
     if (pi_configurations == nullptr) {
@@ -152,26 +163,14 @@ float control_api_get_output(enum ControlName control_name, uint32_t tick) {
         return control_invalid_output;
     }
 
-    float control_output = control_handler.output[control_name];
-
-    if (tick - control_handler.last_manual_mode_received_tick >= 500U) {
-        control_handler.last_manual_mode_received_tick = tick;
-
-        control_output = 0.7F;
-    }
-
-    return control_output;
-}
-
-/*
-float control_api_get_output(enum ControlName control_name) {
-    if (control_name >= CONTROL_NAME_COUNT) {
-        return control_invalid_output;
+    // Stay on the fallback until a new set message actually arrives; the
+    // timestamp is only refreshed by control_api_set_last_message_rx_tick.
+    if (tick - control_handler.last_manual_mode_received_tick >= control_set_message_timeout_ms) {
+        return control_timeout_fallback_output;
     }
 
     return control_handler.output[control_name];
 }
-*/
 
 enum ControlReturnCode control_api_periodically_send_outputs(uint32_t tick) {
     if (tick - control_handler.last_send_tick_outputs >= can_primary_cycle_time_coolingout) {

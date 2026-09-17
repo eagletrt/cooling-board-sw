@@ -62,19 +62,20 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
             break;
         }
         */
-        case CAN_PRIMARY_MESSAGE_FRAME_ID_COOLINGECUSET: {
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_COOLINGSTEERINGWHEELSET: {
             // FIXME: I can't think of a better way to get the tick right now
             control_api_set_last_message_rx_tick(HAL_GetTick());
 
-            if (message.coolingecuset.modeauto == true) {
+            if (message.coolingsteeringwheelset.modeauto == true) {
                 control_api_set_mode(CONTROL_MODE_AUTOMATIC);
             } else {
                 control_api_set_mode(CONTROL_MODE_MANUAL);
-                control_api_update_left_pump_output(message.coolingecuset.pumpleft);
-                control_api_update_right_pump_output(message.coolingecuset.pumpright);
-                control_api_update_left_fan_output(message.coolingecuset.fanleft);
-                control_api_update_right_fan_output(message.coolingecuset.fanright);
+                control_api_update_left_pump_output(message.coolingsteeringwheelset.pumpleft);
+                control_api_update_right_pump_output(message.coolingsteeringwheelset.pumpright);
+                control_api_update_left_fan_output(message.coolingsteeringwheelset.fanleft);
+                control_api_update_right_fan_output(message.coolingsteeringwheelset.fanright);
             }
+            break;
         }
         default:
             break;
