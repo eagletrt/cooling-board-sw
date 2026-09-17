@@ -47,7 +47,7 @@ void control_api_update_internal_status(void);
  * \retval CONTROL_RC_INVALID_MODE if the control mode is invalid
  * \retval CONTROL_RC_ERROR if there has been issue trying to update the control output
  */
-enum ControlReturnCode control_api_update_left_pump_output();
+enum ControlReturnCode control_api_update_left_pump_output(float percentage);
 
 /*!
  * \brief Updates the value of the output dedicated to the control of the left fan
@@ -58,7 +58,7 @@ enum ControlReturnCode control_api_update_left_pump_output();
  * \retval CONTROL_RC_INVALID_MODE if the control mode is invalid
  * \retval CONTROL_RC_ERROR if there has been issue trying to update the control output
  */
-enum ControlReturnCode control_api_update_left_fan_output();
+enum ControlReturnCode control_api_update_left_fan_output(float percentage);
 
 /*!
  * \brief Updates the value of the output dedicated to the control of the right pump
@@ -69,7 +69,7 @@ enum ControlReturnCode control_api_update_left_fan_output();
  * \retval CONTROL_RC_INVALID_MODE if the control mode is invalid
  * \retval CONTROL_RC_ERROR if there has been issue trying to update the control output
  */
-enum ControlReturnCode control_api_update_right_pump_output();
+enum ControlReturnCode control_api_update_right_pump_output(float percentage);
 
 /*!
  * \brief Updates the value of the output dedicated to the control of the right fan
@@ -80,7 +80,7 @@ enum ControlReturnCode control_api_update_right_pump_output();
  * \retval CONTROL_RC_INVALID_MODE if the control mode is invalid
  * \retval CONTROL_RC_ERROR if there has been issue trying to update the control output
  */
-enum ControlReturnCode control_api_update_right_fan_output();
+enum ControlReturnCode control_api_update_right_fan_output(float percentage);
 
 /*!
  * \brief Returns the value of the specified control output
@@ -88,7 +88,7 @@ enum ControlReturnCode control_api_update_right_fan_output();
  * \param[in] control_name The name of the control output
  * \return The value of the control output
  */
-float control_api_get_output(enum ControlName control_name);
+float control_api_get_output(enum ControlName control_name, uint32_t tick);
 
 /*!
  * \brief Periodically send the value of the outputs
@@ -96,5 +96,9 @@ float control_api_get_output(enum ControlName control_name);
  * \param[in] tick The current time tick in ms
  */
 enum ControlReturnCode control_api_periodically_send_outputs(uint32_t tick);
+
+void control_api_set_last_message_rx_tick(uint32_t tick);
+
+uint32_t control_api_get_last_message_rx_tick(void);
 
 #endif // CONTROL_API_H

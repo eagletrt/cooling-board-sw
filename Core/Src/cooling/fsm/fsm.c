@@ -125,20 +125,31 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
 
     // hardware testing
     /*
-    control_api_update_left_fan_output(CONTROL_MODE_MANUAL, 0.5F);
-    control_api_update_left_pump_output(CONTROL_MODE_MANUAL, 0.5F);
-    control_api_update_right_fan_output(CONTROL_MODE_MANUAL, 0.5F);
-    control_api_update_right_pump_output(CONTROL_MODE_MANUAL, 0.5F);
+    control_api_update_left_fan_output(0.7F);
+    control_api_update_left_pump_output(0.7F);
+    control_api_update_right_fan_output(0.7F);
+    control_api_update_right_pump_output(0.7F);
+    */
+
+    /*
+    fsm_idle_data->set_control(CONTROL_NAME_LEFT_FAN,
+                               control_api_get_output(CONTROL_NAME_LEFT_FAN, fsm_idle_data->get_tick()));
+    fsm_idle_data->set_control(CONTROL_NAME_LEFT_PUMP,
+                               control_api_get_output(CONTROL_NAME_LEFT_PUMP, fsm_idle_data->get_tick()));
+    fsm_idle_data->set_control(CONTROL_NAME_RIGHT_FAN,
+                               control_api_get_output(CONTROL_NAME_RIGHT_FAN, fsm_idle_data->get_tick()));
+    fsm_idle_data->set_control(CONTROL_NAME_RIGHT_PUMP,
+                               control_api_get_output(CONTROL_NAME_RIGHT_PUMP, fsm_idle_data->get_tick()));
     */
 
     fsm_idle_data->set_control(CONTROL_NAME_LEFT_FAN,
-                               control_api_get_output(CONTROL_NAME_LEFT_FAN));
+                               control_api_get_output(CONTROL_NAME_LEFT_FAN, fsm_idle_data->get_tick()));
     fsm_idle_data->set_control(CONTROL_NAME_LEFT_PUMP,
-                               control_api_get_output(CONTROL_NAME_LEFT_PUMP));
+                               control_api_get_output(CONTROL_NAME_LEFT_PUMP, fsm_idle_data->get_tick()));
     fsm_idle_data->set_control(CONTROL_NAME_RIGHT_FAN,
-                               control_api_get_output(CONTROL_NAME_RIGHT_FAN));
+                               control_api_get_output(CONTROL_NAME_RIGHT_FAN, fsm_idle_data->get_tick()));
     fsm_idle_data->set_control(CONTROL_NAME_RIGHT_PUMP,
-                               control_api_get_output(CONTROL_NAME_RIGHT_PUMP));
+                               control_api_get_output(CONTROL_NAME_RIGHT_PUMP, fsm_idle_data->get_tick()));
 
     // test usart tx
     /*

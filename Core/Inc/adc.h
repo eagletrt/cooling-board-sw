@@ -54,4 +54,3 @@ void adc_init(void);
 #endif
 
 #endif /* __ADC_H__ */
-

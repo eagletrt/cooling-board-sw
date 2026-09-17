@@ -51,7 +51,7 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
     }
 
     // control_api_set_mode(CONTROL_MODE_AUTOMATIC);
-    control_api_set_mode(CONTROL_MODE_50);
+    control_api_set_mode(CONTROL_MODE_MANUAL);
 
     return return_code;
 }
@@ -110,14 +110,9 @@ void control_api_update_internal_status(void) {
             // TODO: decrease set point of right circuit PI configurations
         }
     }
-
-    control_api_update_left_pump_output();
-    control_api_update_left_fan_output();
-    control_api_update_right_pump_output();
-    control_api_update_right_fan_output();
 }
 
-EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlName control_name) {
+EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlName control_name, float percentage) {
     if (control_name >= CONTROL_NAME_COUNT) {
         return CONTROL_RC_INVALID_NAME;
     }
@@ -126,20 +121,8 @@ EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlNam
         case CONTROL_MODE_AUTOMATIC:
             control_handler.output[control_name] = EAGLETRT_API_CLAMP(pid_controller_api_compute(&control_handler.pi_controller[control_name]), 0.F, 1.F);
             break;
-        case CONTROL_MODE_0:
-            control_handler.output[control_name] = 0.F;
-            break;
-        case CONTROL_MODE_25:
-            control_handler.output[control_name] = 0.25F;
-            break;
-        case CONTROL_MODE_50:
-            control_handler.output[control_name] = 0.5F;
-            break;
-        case CONTROL_MODE_75:
-            control_handler.output[control_name] = 0.75F;
-            break;
-        case CONTROL_MODE_100:
-            control_handler.output[control_name] = 1.F;
+        case CONTROL_MODE_MANUAL:
+            control_handler.output[control_name] = EAGLETRT_API_CLAMP(percentage, 0.F, 1.F);
             break;
         default:
             return CONTROL_RC_INVALID_MODE;
@@ -148,22 +131,39 @@ EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlNam
     return CONTROL_RC_OK;
 }
 
-enum ControlReturnCode control_api_update_left_pump_output() {
-    return prv_control_update_output(CONTROL_NAME_LEFT_PUMP);
+enum ControlReturnCode control_api_update_left_pump_output(float percentage) {
+    return prv_control_update_output(CONTROL_NAME_LEFT_PUMP, percentage);
 }
 
-enum ControlReturnCode control_api_update_left_fan_output() {
-    return prv_control_update_output(CONTROL_NAME_LEFT_FAN);
+enum ControlReturnCode control_api_update_left_fan_output(float percentage) {
+    return prv_control_update_output(CONTROL_NAME_LEFT_FAN, percentage);
 }
 
-enum ControlReturnCode control_api_update_right_pump_output() {
-    return prv_control_update_output(CONTROL_NAME_RIGHT_PUMP);
+enum ControlReturnCode control_api_update_right_pump_output(float percentage) {
+    return prv_control_update_output(CONTROL_NAME_RIGHT_PUMP, percentage);
 }
 
-enum ControlReturnCode control_api_update_right_fan_output() {
-    return prv_control_update_output(CONTROL_NAME_RIGHT_FAN);
+enum ControlReturnCode control_api_update_right_fan_output(float percentage) {
+    return prv_control_update_output(CONTROL_NAME_RIGHT_FAN, percentage);
 }
 
+float control_api_get_output(enum ControlName control_name, uint32_t tick) {
+    if (control_name >= CONTROL_NAME_COUNT) {
+        return control_invalid_output;
+    }
+
+    float control_output = control_handler.output[control_name];
+
+    if (tick - control_handler.last_manual_mode_received_tick >= 500U) {
+        control_handler.last_manual_mode_received_tick = tick;
+
+        control_output = 0.7F;
+    }
+
+    return control_output;
+}
+
+/*
 float control_api_get_output(enum ControlName control_name) {
     if (control_name >= CONTROL_NAME_COUNT) {
         return control_invalid_output;
@@ -171,6 +171,7 @@ float control_api_get_output(enum ControlName control_name) {
 
     return control_handler.output[control_name];
 }
+*/
 
 enum ControlReturnCode control_api_periodically_send_outputs(uint32_t tick) {
     if (tick - control_handler.last_send_tick_outputs >= can_primary_cycle_time_coolingout) {
@@ -190,4 +191,12 @@ enum ControlReturnCode control_api_periodically_send_outputs(uint32_t tick) {
     }
 
     return CONTROL_RC_OK;
+}
+
+void control_api_set_last_message_rx_tick(uint32_t tick) {
+    control_handler.last_manual_mode_received_tick = tick;
+}
+
+uint32_t control_api_get_last_message_rx_tick(void) {
+    return control_handler.last_manual_mode_received_tick;
 }

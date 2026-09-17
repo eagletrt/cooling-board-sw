@@ -12,6 +12,7 @@
 #include "can-primary.h"
 #include "control-api.h"
 #include "temperatures-api.h"
+#include "stm32c0xx_hal.h"
 
 EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages message) {
     switch (id) {
@@ -43,6 +44,7 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
                                              inverter_temperature_max);
             break;
         }
+        /*
         case CAN_PRIMARY_MESSAGE_FRAME_ID_COOLINGCONTROLMODE: {
             if (message.coolingcontrolmode.mode == CAN_PRIMARY_COOLINGCONTROLMODE_MODE_AUTO) {
                 control_api_set_mode(CONTROL_MODE_AUTOMATIC);
@@ -58,6 +60,21 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
                 control_api_set_mode(CONTROL_MODE_100);
             }
             break;
+        }
+        */
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_COOLINGECUSET: {
+            // FIXME: I can't think of a better way to get the tick right now
+            control_api_set_last_message_rx_tick(HAL_GetTick());
+
+            if (message.coolingecuset.modeauto == true) {
+                control_api_set_mode(CONTROL_MODE_AUTOMATIC);
+            } else {
+                control_api_set_mode(CONTROL_MODE_MANUAL);
+                control_api_update_left_pump_output(message.coolingecuset.pumpleft);
+                control_api_update_right_pump_output(message.coolingecuset.pumpright);
+                control_api_update_left_fan_output(message.coolingecuset.fanleft);
+                control_api_update_right_fan_output(message.coolingecuset.fanright);
+            }
         }
         default:
             break;

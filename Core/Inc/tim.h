@@ -66,10 +66,10 @@ extern TIM_HandleTypeDef htim3;
 #define TIM_PWM_LEVELS_COUNT (5U)
 
 /*                                    0%     25%    50%    75%    100%  */
-#define TIM_PWM_LEFT_PUMP_LEVELS  { 0.00F, 0.40F, 0.60F, 0.80F, 1.00F }
+#define TIM_PWM_LEFT_PUMP_LEVELS { 0.00F, 0.40F, 0.60F, 0.80F, 1.00F }
 #define TIM_PWM_RIGHT_PUMP_LEVELS { 0.00F, 0.40F, 0.60F, 0.80F, 1.00F }
-#define TIM_PWM_LEFT_FAN_LEVELS   { 0.00F, 0.45F, 0.69F, 0.85F, 1.00F }
-#define TIM_PWM_RIGHT_FAN_LEVELS  { 0.00F, 0.45F, 0.69F, 0.85F, 1.00F }
+#define TIM_PWM_LEFT_FAN_LEVELS { 0.00F, 0.45F, 0.69F, 0.85F, 1.00F }
+#define TIM_PWM_RIGHT_FAN_LEVELS { 0.00F, 0.45F, 0.69F, 0.85F, 1.00F }
 
 /* USER CODE END Private defines */
 
@@ -101,4 +101,3 @@ enum ControlReturnCode tim_pwm_set_control(enum ControlName control_name, float 
 #endif
 
 #endif /* __TIM_H__ */
-
