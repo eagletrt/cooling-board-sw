@@ -29,6 +29,8 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
     }
 
     enum ControlReturnCode return_code = CONTROL_RC_OK;
+    
+    memset(&control_handler, 0, sizeof(control_handler));
 
     arena_allocator_api_init(&control_handler.harena);
 
@@ -51,10 +53,6 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
 
     // control_api_set_mode(CONTROL_MODE_AUTOMATIC);
     control_api_set_mode(CONTROL_MODE_MANUAL);
-    control_api_update_left_fan_output(0.70F);
-    control_api_update_left_pump_output(0.70F);
-    control_api_update_right_fan_output(0.70F);
-    control_api_update_right_pump_output(0.70F);
 
     return return_code;
 }
