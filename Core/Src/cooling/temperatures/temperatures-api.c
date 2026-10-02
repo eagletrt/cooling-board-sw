@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "temperatures-api.h"
-#include "eagletrt-api.h"
+#include "eagletrt.h"
 
 constexpr float temperatures_invalid_temperature = -420.0F;
 
@@ -50,6 +50,6 @@ enum TemperaturesReturnCode temperatures_api_set_temperature(enum TemperaturesNa
     return TEMPERATURES_RC_OK;
 }
 
-bool temperatures_api_get_temperatures_status(void) {
+bool temperatures_api_are_temperatures_updated(void) {
     return temperatures_handler.temperatures_updated;
 }

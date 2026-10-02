@@ -29,7 +29,7 @@ enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configuration
     }
 
     enum ControlReturnCode return_code = CONTROL_RC_OK;
-    
+
     memset(&control_handler, 0, sizeof(control_handler));
 
     arena_allocator_api_init(&control_handler.harena);
@@ -68,7 +68,7 @@ void control_api_set_mode(enum ControlMode mode) {
 void control_api_update_internal_status(void) {
     // The PI controllers only make sense with fresh temperatures; the manual
     // modes must keep working even if no temperature message ever arrives.
-    if (control_handler.mode == CONTROL_MODE_AUTOMATIC && temperatures_api_get_temperatures_status() == true) {
+    if (control_handler.mode == CONTROL_MODE_AUTOMATIC && temperatures_api_are_temperatures_updated() == true) {
         float front_left_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_FRONT_LEFT_MOTOR_INTERNAL_TEMPERATURE);
         float rear_left_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_REAR_LEFT_MOTOR_INTERNAL_TEMPERATURE);
         float front_right_motor_internal_temperature = temperatures_api_get_temperature(TEMPERATURES_NAME_FRONT_RIGHT_MOTOR_INTERNAL_TEMPERATURE);
