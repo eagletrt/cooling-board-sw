@@ -46,8 +46,8 @@ enum TemperaturesName : uint8_t {
  * \brief Structure that is used to handle the temperatures
  */
 struct TemperaturesHandler {
-    float temperatures[TEMPERATURES_NAME_COUNT];
-    bool temperatures_updated;
+    float temperatures[TEMPERATURES_NAME_COUNT]; /*!< Temperatures values */
+    bool temperatures_updated;                   /*!< Wheather the temperatures have been updeted or not */
 };
 
 #endif // TEMPERATURES_H

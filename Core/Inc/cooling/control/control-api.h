@@ -16,6 +16,7 @@
  * \param[in] pi_configurations The configurations for each PI controller (kp, ki, etc...)
  *
  * \retval CONTROL_RC_OK if the module was successfully initalized
+ * \retval CONTROL_RC_NULL_POINTER if pi_configurations is a null value
  * \retval CONTROL_RC_ERROR if the module was not successfully initalized
  */
 enum ControlReturnCode control_api_init(struct ControlPidConfig pi_configurations[CONTROL_NAME_COUNT]);
