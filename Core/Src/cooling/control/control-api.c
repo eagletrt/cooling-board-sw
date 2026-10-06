@@ -113,7 +113,7 @@ void control_api_update_internal_status(void) {
     }
 }
 
-EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlName control_name, float percentage) {
+enum ControlReturnCode control_api_update_output(enum ControlName control_name, float percentage) {
     if (control_name >= CONTROL_NAME_COUNT) {
         return CONTROL_RC_INVALID_NAME;
     }
@@ -130,22 +130,6 @@ EAGLETRT_STATIC enum ControlReturnCode prv_control_update_output(enum ControlNam
     }
 
     return CONTROL_RC_OK;
-}
-
-enum ControlReturnCode control_api_update_left_pump_output(float percentage) {
-    return prv_control_update_output(CONTROL_NAME_LEFT_PUMP, percentage);
-}
-
-enum ControlReturnCode control_api_update_left_fan_output(float percentage) {
-    return prv_control_update_output(CONTROL_NAME_LEFT_FAN, percentage);
-}
-
-enum ControlReturnCode control_api_update_right_pump_output(float percentage) {
-    return prv_control_update_output(CONTROL_NAME_RIGHT_PUMP, percentage);
-}
-
-enum ControlReturnCode control_api_update_right_fan_output(float percentage) {
-    return prv_control_update_output(CONTROL_NAME_RIGHT_FAN, percentage);
 }
 
 float control_api_get_output(enum ControlName control_name) {

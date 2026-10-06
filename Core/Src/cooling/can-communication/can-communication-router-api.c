@@ -49,10 +49,10 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
                 control_api_set_mode(CONTROL_MODE_AUTOMATIC);
             } else {
                 control_api_set_mode(CONTROL_MODE_MANUAL);
-                control_api_update_left_pump_output(message.coolingraspberryset.pumpleft);
-                control_api_update_right_pump_output(message.coolingraspberryset.pumpright);
-                control_api_update_left_fan_output(message.coolingraspberryset.fanleft);
-                control_api_update_right_fan_output(message.coolingraspberryset.fanright);
+                control_api_update_output(CONTROL_NAME_LEFT_PUMP, message.coolingraspberryset.pumpleft);
+                control_api_update_output(CONTROL_NAME_RIGHT_PUMP, message.coolingraspberryset.pumpright);
+                control_api_update_output(CONTROL_NAME_LEFT_FAN, message.coolingraspberryset.fanleft);
+                control_api_update_output(CONTROL_NAME_RIGHT_FAN, message.coolingraspberryset.fanright);
             }
             break;
         }
