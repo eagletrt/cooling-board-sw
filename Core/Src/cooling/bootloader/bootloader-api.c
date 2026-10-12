@@ -45,10 +45,9 @@ enum CanCommunicationReturnCode bootloader_api_receive(const struct CanCommunica
     if (true /* is in flash state */) {
         /*  */
         bootloader_handler.flashing = true;
-        watchdogs_api_watchdog_start(
+        watchdogs_api_watchdog_reset(
             bootloader_handler.watchdog_pool,
-            bootloader_handler.watchdog,
-            timebase_get_tick(bootloader_handler.timebase));
+            bootloader_handler.watchdog);
     }
 
     if (true /* requested reboot */) {
