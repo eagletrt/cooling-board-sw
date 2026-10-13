@@ -1,6 +1,6 @@
 #include "bootloader-api.h"
 
-#include "timebase-api.h"
+#include "timebase.h"
 #include "watchdogs-api.h"
 #include "eagletrt.h"
 
@@ -28,7 +28,7 @@ enum BootloaderReturnCode bootloader_api_init(struct TimebaseHandler *timebase, 
 }
 
 enum BootloaderReturnCode bootloader_api_tick(void) {
-    watchdogs_api_routine(bootloader_handler.watchdog_pool, timebase_get_tick(bootloader_handler.timebase));
+    watchdogs_api_routine(bootloader_handler.watchdog_pool);
 
     return BOOTLOADER_RC_OK;
 }
@@ -40,9 +40,8 @@ enum CanCommunicationReturnCode bootloader_api_receive(const struct CanCommunica
     if (frame->length > CAN_COMMUNICATION_FRAME_DATA_SIZE) {
         return CAN_COMMUNICATION_RC_INVALID_LENGTH;
     }
-    // TODO: check id range
 
-    if (true /* is in flash state */) {
+    if (false /* is in flash state */) {
         /*  */
         bootloader_handler.flashing = true;
         watchdogs_api_watchdog_reset(
@@ -50,8 +49,9 @@ enum CanCommunicationReturnCode bootloader_api_receive(const struct CanCommunica
             bootloader_handler.watchdog);
     }
 
-    if (true /* requested reboot */) {
+    if (false /* requested reboot */) {
         bootloader_handler.requested = true;
+        bootloader_handler.reboot();
     }
 
     return CAN_COMMUNICATION_RC_OK;

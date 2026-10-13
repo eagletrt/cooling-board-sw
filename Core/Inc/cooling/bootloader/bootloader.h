@@ -6,6 +6,8 @@
 
 #define BOOTLOADER_FLASH_TIMEOUT 500U
 
+typedef void (*reboot_callback)(void);
+
 enum BootloaderReturnCode {
     BOOTLOADER_RC_OK = 0,
     BOOTLOADER_RC_NULL_POINTER,
@@ -16,6 +18,7 @@ struct BootloaderHandler {
     struct TimebaseHandler *timebase;
     struct WatchdogHandler *watchdog_pool;
     struct Watchdog *watchdog;
+    reboot_callback reboot;
     bool flashing;
     bool requested;
 };
