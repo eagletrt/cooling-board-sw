@@ -20,7 +20,7 @@ struct BootloaderHandler {
     struct Watchdog *watchdog;
     reboot_callback reboot;
     bool flashing;
-    bool requested;
+    bool timedout;
 };
 
 #endif // BOOTLOADER_H

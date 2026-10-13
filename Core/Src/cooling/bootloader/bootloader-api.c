@@ -7,7 +7,7 @@
 EAGLETRT_STATIC struct BootloaderHandler bootloader_handler;
 
 void prv_bootloader_api_flash_timeout(void) {
-    bootloader_handler.flashing = false;
+    bootloader_handler.timedout = true;
 }
 
 enum BootloaderReturnCode bootloader_api_init(struct TimebaseHandler *timebase,
@@ -25,45 +25,43 @@ enum BootloaderReturnCode bootloader_api_init(struct TimebaseHandler *timebase,
     watchdogs_api_init_watchdog(bootloader_handler.watchdog, BOOTLOADER_FLASH_TIMEOUT, prv_bootloader_api_flash_timeout);
 
     bootloader_handler.flashing = false;
-    bootloader_handler.requested = false;
+    bootloader_handler.timedout = false;
 
     return BOOTLOADER_RC_OK;
 }
 
-enum BootloaderReturnCode bootloader_api_tick(void) {
-    watchdogs_api_routine(bootloader_handler.watchdog_pool);
+enum BootloaderReturnCode bootloader_api_reboot(void) {
+    bootloader_handler.reboot();
+    return BOOTLOADER_RC_OK;
+}
+
+enum BootloaderReturnCode bootloader_api_watchdog_reset(void) {
+    bootloader_handler.timedout = false;
+    watchdogs_api_watchdog_reset(
+        bootloader_handler.watchdog_pool,
+        bootloader_handler.watchdog);
 
     return BOOTLOADER_RC_OK;
 }
 
-enum CanCommunicationReturnCode bootloader_api_receive(const struct CanCommunicationFrame *frame) {
-    if (frame == nullptr) {
-        return CAN_COMMUNICATION_RC_NULL_POINTER;
-    }
-    if (frame->length > CAN_COMMUNICATION_FRAME_DATA_SIZE) {
-        return CAN_COMMUNICATION_RC_INVALID_LENGTH;
-    }
+enum BootloaderReturnCode bootloader_api_watchdog_pet(void) {
+    watchdogs_api_watchdog_pet(
+        bootloader_handler.watchdog_pool,
+        bootloader_handler.watchdog);
 
-    if (false /* is in flash state */) {
-        /*  */
-        bootloader_handler.flashing = true;
-        watchdogs_api_watchdog_reset(
-            bootloader_handler.watchdog_pool,
-            bootloader_handler.watchdog);
-    }
+    return BOOTLOADER_RC_OK;
+}
 
-    if (false /* requested reboot */) {
-        bootloader_handler.requested = true;
-        bootloader_handler.reboot();
-    }
-
-    return CAN_COMMUNICATION_RC_OK;
+bool bootloader_api_is_timedout(void) {
+    return bootloader_handler.timedout;
 }
 
 bool bootloader_api_is_flashing(void) {
     return bootloader_handler.flashing;
 }
 
-bool bootloader_is_requested(void) {
-    return bootloader_handler.requested;
+enum BootloaderReturnCode bootloader_api_set_flashing(bool flashing) {
+    bootloader_handler.flashing = flashing;
+
+    return BOOTLOADER_RC_OK;
 }

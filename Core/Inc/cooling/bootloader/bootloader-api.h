@@ -2,16 +2,19 @@
 #define BOOTLOADER_API_H
 
 #include "bootloader.h"
-#include "can-communication.h"
 
 enum BootloaderReturnCode bootloader_api_init(struct TimebaseHandler *timebase, struct WatchdogHandler *watchdog_pool, reboot_callback reboot);
 
-enum BootloaderReturnCode bootloader_api_tick(void);
+enum BootloaderReturnCode bootloader_api_reboot(void);
 
-enum CanCommunicationReturnCode bootloader_api_receive(const struct CanCommunicationFrame *frame);
+enum BootloaderReturnCode bootloader_api_watchdog_reset(void);
 
-bool bootloader_is_requested(void);
+enum BootloaderReturnCode bootloader_api_watchdog_pet(void);
 
-bool bootloader_is_flashing(void);
+bool bootloader_api_is_timedout(void);
+
+bool bootloader_api_is_flashing(void);
+
+enum BootloaderReturnCode bootloader_api_set_flashing(bool flashing);
 
 #endif // BOOTLOADER_API_H
