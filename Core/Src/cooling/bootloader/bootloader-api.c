@@ -19,7 +19,7 @@ enum BootloaderReturnCode bootloader_api_init(struct TimebaseHandler *timebase, 
     bootloader_handler.timebase = timebase;
     bootloader_handler.watchdog_pool = watchdog_pool;
 
-    watchdogs_api_init_watchdog(bootloader_handler.watchdog, 500U, prv_bootloader_api_flash_timeout); // TODO: fix
+    watchdogs_api_init_watchdog(bootloader_handler.watchdog, BOOTLOADER_FLASH_TIMEOUT, prv_bootloader_api_flash_timeout);
 
     bootloader_handler.flashing = false;
     bootloader_handler.requested = false;

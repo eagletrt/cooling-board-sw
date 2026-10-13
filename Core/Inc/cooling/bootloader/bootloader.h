@@ -4,6 +4,8 @@
 #include "timebase.h"
 #include "watchdogs.h"
 
+#define BOOTLOADER_FLASH_TIMEOUT 500U
+
 enum BootloaderReturnCode {
     BOOTLOADER_RC_OK = 0,
     BOOTLOADER_RC_NULL_POINTER,
