@@ -4,7 +4,7 @@
 #include "bootloader.h"
 #include "can-communication.h"
 
-enum BootloaderReturnCode bootloader_api_init(struct TimebaseHandler *timebase, struct WatchdogHandler *watchdog_pool);
+enum BootloaderReturnCode bootloader_api_init(struct TimebaseHandler *timebase, struct WatchdogHandler *watchdog_pool, reboot_callback reboot);
 
 enum BootloaderReturnCode bootloader_api_tick(void);
 

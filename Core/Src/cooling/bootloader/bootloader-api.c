@@ -10,14 +10,17 @@ void prv_bootloader_api_flash_timeout(void) {
     bootloader_handler.flashing = false;
 }
 
-enum BootloaderReturnCode bootloader_api_init(struct TimebaseHandler *timebase, struct WatchdogHandler *watchdog_pool) {
+enum BootloaderReturnCode bootloader_api_init(struct TimebaseHandler *timebase,
+                                              struct WatchdogHandler *watchdog_pool,
+                                              reboot_callback reboot) {
     memset(&bootloader_handler, 0, sizeof(bootloader_handler));
 
-    if (timebase == nullptr || watchdog_pool == nullptr) {
+    if (timebase == nullptr || watchdog_pool == nullptr || reboot == nullptr) {
         return BOOTLOADER_RC_NULL_POINTER;
     }
     bootloader_handler.timebase = timebase;
     bootloader_handler.watchdog_pool = watchdog_pool;
+    bootloader_handler.reboot = reboot;
 
     watchdogs_api_init_watchdog(bootloader_handler.watchdog, BOOTLOADER_FLASH_TIMEOUT, prv_bootloader_api_flash_timeout);
 
