@@ -24,6 +24,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "can-communication-api.h"
 #include "control-api.h"
 #include "identity-api.h"
+#include "bootloader-api.h"
 
 /* USER CODE END Includes */
 
@@ -82,6 +83,10 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
     const enum PostReturnCode post_return_code = post_api_run(post_init_data);
 
     next_state = (post_return_code == POST_RC_OK) ? FSM_STATE_IDLE : FSM_STATE_ERROR;
+
+    if(bootloader_api_is_flashing()) {
+        next_state = FSM_STATE_FLASH;
+    }
 
     switch (next_state) {
         case FSM_STATE_IDLE:
@@ -194,6 +199,10 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
     /* Your Code Here */
     EAGLETRT_API_UNUSED(data);
 
+    if(bootloader_api_is_timedout()) {
+        next_state = FSM_STATE_IDLE;
+    }
+
     switch (next_state) {
         case FSM_NO_CHANGE:
         case FSM_STATE_IDLE:
@@ -241,6 +250,8 @@ void fsm_init_error(fsm_state_data_t *data) {
 void fsm_start_flash(fsm_state_data_t *data) {
     /* Your Code Here */
     EAGLETRT_API_UNUSED(data);
+
+    bootloader_api_set_flashing(true);
 }
 
 // This function is called in 2 transitions:
@@ -256,6 +267,8 @@ void fsm_error_detected(fsm_state_data_t *data) {
 void fsm_flash_done(fsm_state_data_t *data) {
     /* Your Code Here */
     EAGLETRT_API_UNUSED(data);
+
+    bootloader_api_set_flashing(false);
 }
 
 /*  ____  _        _
