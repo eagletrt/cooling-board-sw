@@ -32,6 +32,8 @@
 #include "post.h"
 #include "can-communication-router-api.h"
 #include "control-api.h"
+#include "timebase-api.h"
+#include "watchdogs-api.h"
 
 /* USER CODE END Includes */
 
@@ -42,7 +44,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define TIMEBASE_RESOLUTION 1U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,13 +56,15 @@
 
 /* USER CODE BEGIN PV */
 fsm_state_t current_state = FSM_STATE_INIT;
+struct TimebaseHandler timebase_handler;
+struct WatchdogHandler watchdog_handler;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+uint32_t get_tick(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -106,6 +110,16 @@ int main(void) {
 
     HAL_FDCAN_Start(&hfdcan1);
 
+    if (timebase_api_init(&timebase_handler, TIMEBASE_RESOLUTION) != TIMEBASE_RC_OK) {
+        Error_Handler();
+    }
+
+    timebase_set_enable(&timebase_handler, true);
+
+    if (watchdogs_api_init_pool(&watchdog_handler, get_tick) != WATCHDOG_RC_OK) {
+        Error_Handler();
+    }
+
     struct PostInitData post_init_data = {
         .can_network_configurations = {
             [CAN_COMMUNICATION_NETWORK_PRIMARY] = {
@@ -122,6 +136,9 @@ int main(void) {
             [CONTROL_NAME_RIGHT_PUMP] = { 0 },
             [CONTROL_NAME_RIGHT_FAN] = { 0 },
         },
+        .timebase_handler = &timebase_handler,
+        .watchdog_handler = &watchdog_handler,
+        .reboot = HAL_NVIC_SystemReset
     };
 
     current_state = fsm_run_state(current_state, &post_init_data);
@@ -190,7 +207,13 @@ void SystemClock_Config(void) {
 }
 
 /* USER CODE BEGIN 4 */
+uint32_t get_tick(void) {
+    timebase_get_tick(&timebase_handler);
+}
 
+void HAL_SYSTICK_Callback(void) {
+    timebase_inc_tick(&timebase_handler);
+}
 /* USER CODE END 4 */
 
 /**
