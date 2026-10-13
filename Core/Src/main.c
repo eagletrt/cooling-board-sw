@@ -208,7 +208,7 @@ void SystemClock_Config(void) {
 
 /* USER CODE BEGIN 4 */
 uint32_t get_tick(void) {
-    timebase_get_tick(&timebase_handler);
+    return timebase_get_tick(&timebase_handler);
 }
 
 void HAL_SYSTICK_Callback(void) {
