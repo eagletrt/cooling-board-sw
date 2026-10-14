@@ -136,7 +136,6 @@ int main(void) {
             [CONTROL_NAME_RIGHT_PUMP] = { 0 },
             [CONTROL_NAME_RIGHT_FAN] = { 0 },
         },
-        .timebase_handler = &timebase_handler,
         .watchdog_handler = &watchdog_handler,
         .reboot = HAL_NVIC_SystemReset
     };

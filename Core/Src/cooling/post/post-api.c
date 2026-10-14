@@ -37,8 +37,7 @@ enum PostReturnCode post_api_run(struct PostInitData *post_init_data) {
         post_return_code = POST_RC_UNINITIALIZED_MODULE;
     }
 
-    if (bootloader_api_init(post_init_data->timebase_handler,
-                            post_init_data->watchdog_handler,
+    if (bootloader_api_init(post_init_data->watchdog_handler,
                             post_init_data->reboot) != BOOTLOADER_RC_OK) {
         post_return_code = POST_RC_UNINITIALIZED_MODULE;
     }
