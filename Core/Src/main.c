@@ -161,6 +161,7 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
+        watchdogs_api_routine(&watchdog_handler);
         current_state = fsm_run_state(current_state, &fsm_data);
 
         /* USER CODE END WHILE */
