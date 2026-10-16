@@ -64,6 +64,7 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
         default: {
             if (id >= BOOTLOADER_CAN_FLASH_ID_MIN && id <= BOOTLOADER_CAN_FLASH_ID_MAX) {
                 bootloader_api_set_flashing(true);
+                bootloader_api_watchdog_pet();
             }
 
             break;
