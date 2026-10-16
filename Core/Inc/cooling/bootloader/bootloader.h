@@ -10,6 +10,9 @@
 
 #include "watchdogs.h"
 
+#define BOOTLOADER_CAN_FLASH_ID_MIN 100U
+#define BOOTLOADER_CAN_FLASH_ID_MAX 133U
+
 #define BOOTLOADER_WATCHDOG_TIMEOUT 500U
 
 /*!

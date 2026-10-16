@@ -12,6 +12,7 @@
 #include "can-primary.h"
 #include "control-api.h"
 #include "temperatures-api.h"
+#include "bootloader-api.h"
 
 EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages message) {
     switch (id) {
@@ -56,14 +57,17 @@ EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages messa
             }
             break;
         }
-        //TODO: decode reboot message
-        // case: ID
-        // bootloader_api_reboot();
-        //TODO: decode go in flash message
-        // case: ID
-        // bootloader_api_watchdog_pet();
-        default:
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_COOLINGFLASHINGRX: {
+            bootloader_api_reboot();
             break;
+        }
+        default: {
+            if (id >= BOOTLOADER_CAN_FLASH_ID_MIN && id <= BOOTLOADER_CAN_FLASH_ID_MAX) {
+                bootloader_api_set_flashing(true);
+            }
+
+            break;
+        }
     }
 }
 
