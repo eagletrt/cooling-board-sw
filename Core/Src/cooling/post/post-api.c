@@ -8,7 +8,9 @@
 #include "post-api.h"
 #include "temperatures-api.h"
 #include "can-communication-api.h"
+#include "identity-api.h"
 #include "control-api.h"
+#include "bootloader-api.h"
 
 enum PostReturnCode post_api_run(struct PostInitData *post_init_data) {
     if (post_init_data == nullptr ||
@@ -27,7 +29,16 @@ enum PostReturnCode post_api_run(struct PostInitData *post_init_data) {
         post_return_code = POST_RC_UNINITIALIZED_MODULE;
     }
 
+    if (identity_api_init() != IDENTITY_RC_OK) {
+        post_return_code = POST_RC_UNINITIALIZED_MODULE;
+    }
+
     if (control_api_init(post_init_data->pid_configurations) != CONTROL_RC_OK) {
+        post_return_code = POST_RC_UNINITIALIZED_MODULE;
+    }
+
+    if (bootloader_api_init(post_init_data->watchdog_handler,
+                            post_init_data->reboot) != BOOTLOADER_RC_OK) {
         post_return_code = POST_RC_UNINITIALIZED_MODULE;
     }
 

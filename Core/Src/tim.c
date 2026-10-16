@@ -22,6 +22,11 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "eagletrt-api.h"
+
+#include <math.h>
+#include <stdbool.h>
+
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
@@ -79,9 +84,9 @@ void MX_TIM3_Init(void) {
 
     /* USER CODE END TIM3_Init 1 */
     htim3.Instance = TIM3;
-    htim3.Init.Prescaler = 7;
+    htim3.Init.Prescaler = 0;
     htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim3.Init.Period = 999;
+    htim3.Init.Period = 65535;
     htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     if (HAL_TIM_Base_Init(&htim3) != HAL_OK) {
@@ -101,7 +106,7 @@ void MX_TIM3_Init(void) {
     }
     sConfigOC.OCMode = TIM_OCMODE_PWM1;
     sConfigOC.Pulse = 0;
-    sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
+    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
     sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
     if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
         Error_Handler();
@@ -158,19 +163,19 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *timHandle) {
     PB7     ------> TIM3_CH4
     PB8     ------> TIM3_CH1
     */
-        GPIO_InitStruct.Pin = PUMP_L_CMD_Pin | FAN_L_CMD_Pin | PUMP_R_CMD_Pin;
+        GPIO_InitStruct.Pin = PUMP_L_CMD_Pin | FAN_L_CMD_Pin | FAN_R_CMD_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF3_TIM3;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-        GPIO_InitStruct.Pin = FAN_R_CMD_Pin;
+        GPIO_InitStruct.Pin = PUMP_R_CMD_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF13_TIM3;
-        HAL_GPIO_Init(FAN_R_CMD_GPIO_Port, &GPIO_InitStruct);
+        HAL_GPIO_Init(PUMP_R_CMD_GPIO_Port, &GPIO_InitStruct);
 
         /* USER CODE BEGIN TIM3_MspPostInit 1 */
 
@@ -202,5 +207,113 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *tim_baseHandle) {
 }
 
 /* USER CODE BEGIN 1 */
+
+EAGLETRT_STATIC const uint32_t control_to_tim_channel_map[CONTROL_NAME_COUNT] = {
+    [CONTROL_NAME_LEFT_PUMP] = TIM_CHANNEL_3,
+    [CONTROL_NAME_LEFT_FAN] = TIM_CHANNEL_4,
+    [CONTROL_NAME_RIGHT_PUMP] = TIM_CHANNEL_2,
+    [CONTROL_NAME_RIGHT_FAN] = TIM_CHANNEL_1
+};
+
+/*!
+ * \brief Slew limiter state, one per actuator
+ */
+EAGLETRT_STATIC struct {
+    float level;        /*!< Level currently applied to the pin */
+    uint32_t last_tick; /*!< Tick of the last update, ms */
+} tim_pwm_slew[CONTROL_NAME_COUNT];
+
+/*!
+ * \brief Move the applied level toward \p target, no faster than the configured slew rate.
+ */
+EAGLETRT_STATIC float prv_tim_pwm_slew(enum ControlName control_name, float target, uint32_t tick) {
+    const uint32_t elapsed_ms = tick - tim_pwm_slew[control_name].last_tick;
+    tim_pwm_slew[control_name].last_tick = tick;
+
+    float level = tim_pwm_slew[control_name].level;
+    const float delta = target - level;
+    const float full_scale_seconds = (delta >= 0.F) ? TIM_PWM_SLEW_UP_SECONDS : TIM_PWM_SLEW_DOWN_SECONDS;
+
+    if (full_scale_seconds <= 0.F) {
+        level = target;
+    } else {
+        const float max_step = (float)elapsed_ms / (full_scale_seconds * 1000.F);
+        if (delta > max_step) {
+            level += max_step;
+        } else if (delta < -max_step) {
+            level -= max_step;
+        } else {
+            level = target;
+        }
+    }
+
+    tim_pwm_slew[control_name].level = level;
+    return level;
+}
+
+/*!
+ * \brief Duty cycle to write on the pin for a given output level.
+ */
+EAGLETRT_STATIC float prv_tim_pwm_level_to_duty(enum ControlName control_name, float level) {
+    bool inverted;
+    switch (control_name) {
+        case CONTROL_NAME_LEFT_FAN:
+        case CONTROL_NAME_RIGHT_FAN:
+            inverted = (TIM_PWM_FAN_INVERTED != 0);
+            break;
+        case CONTROL_NAME_LEFT_PUMP:
+        case CONTROL_NAME_RIGHT_PUMP:
+        default:
+            inverted = false;
+            break;
+    }
+
+    return inverted ? (1.F - level) : level;
+}
+
+enum ControlReturnCode tim_pwm_start(void) {
+    // ARR = f_tim / (f_pwm * (PSC + 1)) - 1
+    // TIM3 sits on APB; with the APB prescaler at DIV1 the timer clock equals PCLK1.
+    const uint32_t timer_clk = HAL_RCC_GetPCLK1Freq();
+    const uint32_t psc = htim3.Instance->PSC;
+    const uint32_t arr = (timer_clk / (TIM_PWM_FREQUENCY_HZ * (psc + 1U))) - 1U;
+    __HAL_TIM_SET_AUTORELOAD(&htim3, arr);
+
+    enum ControlReturnCode return_code = CONTROL_RC_OK;
+    const uint32_t now = HAL_GetTick();
+    for (uint8_t control_name = 0; control_name < CONTROL_NAME_COUNT; ++control_name) {
+        // start from OFF so the first ramp begins at zero, not at a stale value
+        tim_pwm_slew[control_name].level = 0.F;
+        tim_pwm_slew[control_name].last_tick = now;
+        if (tim_pwm_set_control((enum ControlName)control_name, 0.F) != CONTROL_RC_OK) {
+            return_code = CONTROL_RC_ERROR;
+        }
+        if (HAL_TIM_PWM_Start(&htim3, control_to_tim_channel_map[control_name]) != HAL_OK) {
+            return_code = CONTROL_RC_ERROR;
+        }
+    }
+
+    // load ARR and the preloaded CCRs once; afterwards CCR updates land at the next period
+    htim3.Instance->EGR = TIM_EGR_UG;
+
+    return return_code;
+}
+
+enum ControlReturnCode tim_pwm_set_control(enum ControlName control_name, float percentage) {
+    if (control_name >= CONTROL_NAME_COUNT) {
+        return CONTROL_RC_INVALID_NAME;
+    }
+
+    const float target = EAGLETRT_API_CLAMP(percentage, 0.F, 1.F);
+    const float level = prv_tim_pwm_slew(control_name, target, HAL_GetTick());
+    const float duty = prv_tim_pwm_level_to_duty(control_name, level);
+
+    // PWM1: output high while CNT < CCR, so CCR = ARR + 1 is a solid 100%
+    const uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim3);
+    const uint32_t pulse = (uint32_t)lroundf(duty * (float)(arr + 1U));
+    __HAL_TIM_SET_COMPARE(&htim3, control_to_tim_channel_map[control_name], pulse);
+
+    return CONTROL_RC_OK;
+}
 
 /* USER CODE END 1 */

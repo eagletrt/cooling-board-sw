@@ -10,6 +10,8 @@
 
 #include "can-communication.h"
 #include "control.h"
+#include "watchdogs.h"
+#include "bootloader.h"
 
 /*!
  * \brief Return codes for the POST module APIs
@@ -26,6 +28,8 @@ enum PostReturnCode {
 struct PostInitData {
     struct CanCommunicationNetworkConfig can_network_configurations[CAN_COMMUNICATION_NETWORK_COUNT];
     struct ControlPidConfig pid_configurations[CONTROL_NAME_COUNT];
+    struct WatchdogHandler *watchdog_handler;
+    reboot_callback reboot;
 };
 
 #endif // POST_H
