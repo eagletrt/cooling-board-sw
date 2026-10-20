@@ -40,7 +40,7 @@ enum ControlName : uint8_t {
  */
 enum ControlMode : uint8_t {
     CONTROL_MODE_AUTOMATIC, /*!< automatic mode, output value gets handled by the PID */
-    CONTROL_MODE_MANUAL,    /*!< manual mode, output value is read from the ecu */ //TODO: check if its true
+    CONTROL_MODE_MANUAL,    /*!< manual mode, output value is set by the ECU
 };
 
 /*!
