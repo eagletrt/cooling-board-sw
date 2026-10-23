@@ -32,6 +32,15 @@ enum BootloaderReturnCode bootloader_api_init(struct WatchdogHandler *watchdog_p
 enum BootloaderReturnCode bootloader_api_reboot(void);
 
 /*!
+ * \brief Restart the watchdog of the module
+ *
+ * \retval BOOTLOADER_RC_OK if the watchdog was successfully restarted
+ * \retval BOOTLOADER_RC_NULL_POINTER if the watchdog is a null pointer
+ * \retval BOOTLOADER_RC_ERROR if the watchdog was not successfully restarted
+ */
+enum BootloaderReturnCode bootloader_api_watchdog_restart(void);
+
+/*!
  * \brief Reset the watchdog of the module
  *
  * \retval BOOTLOADER_RC_OK

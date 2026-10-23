@@ -33,7 +33,7 @@ enum BootloaderReturnCode bootloader_api_init(struct WatchdogHandler *watchdog_p
     bootloader_handler.watchdog_pool = watchdog_pool;
     bootloader_handler.reboot = reboot;
 
-    watchdogs_api_init_watchdog(bootloader_handler.watchdog, BOOTLOADER_WATCHDOG_TIMEOUT, prv_bootloader_api_flash_timeout);
+    watchdogs_api_init_watchdog(&bootloader_handler.watchdog, BOOTLOADER_WATCHDOG_TIMEOUT, prv_bootloader_api_flash_timeout);
 
     bootloader_handler.flashing = false;
     bootloader_handler.timedout = false;
@@ -50,11 +50,20 @@ enum BootloaderReturnCode bootloader_api_reboot(void) {
     return BOOTLOADER_RC_OK;
 }
 
+enum BootloaderReturnCode bootloader_api_watchdog_restart(void) {
+    bootloader_handler.timedout = false;
+    watchdogs_api_watchdog_restart(
+        bootloader_handler.watchdog_pool,
+        &bootloader_handler.watchdog);
+
+    return BOOTLOADER_RC_OK;
+}
+
 enum BootloaderReturnCode bootloader_api_watchdog_reset(void) {
     bootloader_handler.timedout = false;
     watchdogs_api_watchdog_reset(
         bootloader_handler.watchdog_pool,
-        bootloader_handler.watchdog);
+        &bootloader_handler.watchdog);
 
     return BOOTLOADER_RC_OK;
 }
@@ -62,7 +71,7 @@ enum BootloaderReturnCode bootloader_api_watchdog_reset(void) {
 enum BootloaderReturnCode bootloader_api_watchdog_pet(void) {
     watchdogs_api_watchdog_pet(
         bootloader_handler.watchdog_pool,
-        bootloader_handler.watchdog);
+        &bootloader_handler.watchdog);
 
     return BOOTLOADER_RC_OK;
 }

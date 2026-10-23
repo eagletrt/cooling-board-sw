@@ -110,7 +110,7 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
         next_state = FSM_STATE_ERROR;
     }
 
-    if(bootloader_api_is_flashing()) {
+    if (bootloader_api_is_flashing()) {
         next_state = FSM_STATE_FLASH;
     }
 
@@ -199,7 +199,7 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
     /* Your Code Here */
     EAGLETRT_API_UNUSED(data);
 
-    if(bootloader_api_is_timedout()) {
+    if (bootloader_api_is_timedout()) {
         next_state = FSM_STATE_IDLE;
     }
 
@@ -251,7 +251,7 @@ void fsm_start_flash(fsm_state_data_t *data) {
     /* Your Code Here */
     EAGLETRT_API_UNUSED(data);
 
-    bootloader_api_watchdog_reset();
+    bootloader_api_watchdog_restart();
 }
 
 // This function is called in 2 transitions:

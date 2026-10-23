@@ -35,7 +35,7 @@ enum BootloaderReturnCode {
  */
 struct BootloaderHandler {
     struct WatchdogHandler *watchdog_pool; /*!< Watchdogs pool */
-    struct Watchdog *watchdog;             /*!< Watchdog used by the module */
+    struct Watchdog watchdog;              /*!< Watchdog used by the module */
     reboot_callback reboot;                /*!< MCU reboot callback */
     bool flashing;                         /*!< Wheather the MCU is flashing or not */
     bool timedout;                         /*!< Wheather the watchdog has timedout or not */
