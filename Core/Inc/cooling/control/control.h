@@ -40,8 +40,7 @@ enum ControlName : uint8_t {
  */
 enum ControlMode : uint8_t {
     CONTROL_MODE_AUTOMATIC, /*!< automatic mode, output value gets handled by the PID */
-    CONTROL_MODE_MANUAL     /*!< manual mode, output value has to be adjusted by hand */
-
+    CONTROL_MODE_MANUAL,    /*!< manual mode, output value is set by the ECU */
 };
 
 /*!
@@ -62,6 +61,9 @@ struct ControlHandler {
     struct ArenaAllocatorHandler harena;                    /*!< Arena allocator used by the PI controllers */
     struct PidController pi_controller[CONTROL_NAME_COUNT]; /*!< The PI controllers */
     float output[CONTROL_NAME_COUNT];                       /*!< The output values */
+    enum ControlMode mode;                                  /*!< The control modes for the output */
+    uint32_t last_send_tick_outputs;
+    uint32_t last_manual_mode_received_tick; // TODO: check if needed (no occurence found)
 };
 
 #endif // CONTROL_H

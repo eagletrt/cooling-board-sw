@@ -32,6 +32,8 @@
 #include "post.h"
 #include "can-communication-router-api.h"
 #include "control-api.h"
+#include "timebase-api.h"
+#include "watchdogs-api.h"
 
 /* USER CODE END Includes */
 
@@ -42,7 +44,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define TIMEBASE_RESOLUTION 1U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,17 +56,29 @@
 
 /* USER CODE BEGIN PV */
 fsm_state_t current_state = FSM_STATE_INIT;
+struct TimebaseHandler timebase_handler;
+struct WatchdogHandler watchdog_handler;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+uint32_t get_tick(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+static void VectorBase_Config(void) {
+    /* The constant array with vectors of the vector table is declared externally in the
+   * c-startup code.
+   */
+    extern const unsigned long g_pfnVectors[];
+
+    /* Remap the vector table to where the vector table is located for this program. */
+    SCB->VTOR = (unsigned long)&g_pfnVectors[0];
+}
 
 /* USER CODE END 0 */
 
@@ -75,7 +89,7 @@ void SystemClock_Config(void);
 int main(void) {
 
     /* USER CODE BEGIN 1 */
-
+    VectorBase_Config(); // bootloader code
     /* USER CODE END 1 */
 
     /* MCU Configuration--------------------------------------------------------*/
@@ -105,7 +119,16 @@ int main(void) {
     /* USER CODE BEGIN 2 */
 
     HAL_FDCAN_Start(&hfdcan1);
-    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+
+    if (timebase_api_init(&timebase_handler, TIMEBASE_RESOLUTION) != TIMEBASE_RC_OK) {
+        Error_Handler();
+    }
+
+    timebase_set_enable(&timebase_handler, true);
+
+    if (watchdogs_api_init_pool(&watchdog_handler, get_tick) != WATCHDOG_RC_OK) {
+        Error_Handler();
+    }
 
     struct PostInitData post_init_data = {
         .can_network_configurations = {
@@ -123,16 +146,32 @@ int main(void) {
             [CONTROL_NAME_RIGHT_PUMP] = { 0 },
             [CONTROL_NAME_RIGHT_FAN] = { 0 },
         },
+        .watchdog_handler = &watchdog_handler,
+        .reboot = HAL_NVIC_SystemReset
     };
 
     current_state = fsm_run_state(current_state, &post_init_data);
+
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
+
+    // PWM period + every actuator channel running at 0% before the control loop starts
+    if (tim_pwm_start() != CONTROL_RC_OK) {
+        Error_Handler();
+    }
+
+    struct FsmData fsm_data = {
+        .get_tick = HAL_GetTick,
+        .set_control = tim_pwm_set_control
+    };
 
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        current_state = fsm_run_state(current_state, nullptr);
+        watchdogs_api_routine(&watchdog_handler);
+        current_state = fsm_run_state(current_state, &fsm_data);
 
         /* USER CODE END WHILE */
 
@@ -178,7 +217,13 @@ void SystemClock_Config(void) {
 }
 
 /* USER CODE BEGIN 4 */
+uint32_t get_tick(void) {
+    return HAL_GetTick();
+}
 
+void HAL_SYSTICK_Callback(void) {
+    timebase_inc_tick(&timebase_handler);
+}
 /* USER CODE END 4 */
 
 /**
