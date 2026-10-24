@@ -45,13 +45,6 @@ enum BootloaderReturnCode bootloader_api_watchdog_restart(void);
  *
  * \retval BOOTLOADER_RC_OK
  */
-enum BootloaderReturnCode bootloader_api_watchdog_reset(void);
-
-/*!
- * \brief Reset the watchdog of the module
- *
- * \retval BOOTLOADER_RC_OK
- */
 enum BootloaderReturnCode bootloader_api_watchdog_pet(void);
 
 /*!

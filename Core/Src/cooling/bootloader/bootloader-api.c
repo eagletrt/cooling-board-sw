@@ -59,15 +59,6 @@ enum BootloaderReturnCode bootloader_api_watchdog_restart(void) {
     return BOOTLOADER_RC_OK;
 }
 
-enum BootloaderReturnCode bootloader_api_watchdog_reset(void) {
-    bootloader_handler.timedout = false;
-    watchdogs_api_watchdog_reset(
-        bootloader_handler.watchdog_pool,
-        &bootloader_handler.watchdog);
-
-    return BOOTLOADER_RC_OK;
-}
-
 enum BootloaderReturnCode bootloader_api_watchdog_pet(void) {
     watchdogs_api_watchdog_pet(
         bootloader_handler.watchdog_pool,
