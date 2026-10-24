@@ -64,7 +64,7 @@ struct WatchdogHandler watchdog_handler;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-uint32_t get_tick(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -126,7 +126,7 @@ int main(void) {
 
     timebase_set_enable(&timebase_handler, true);
 
-    if (watchdogs_api_init_pool(&watchdog_handler, get_tick) != WATCHDOG_RC_OK) {
+    if (watchdogs_api_init_pool(&watchdog_handler, HAL_GetTick) != WATCHDOG_RC_OK) {
         Error_Handler();
     }
 
@@ -217,10 +217,6 @@ void SystemClock_Config(void) {
 }
 
 /* USER CODE BEGIN 4 */
-uint32_t get_tick(void) {
-    return HAL_GetTick();
-}
-
 void HAL_SYSTICK_Callback(void) {
     timebase_inc_tick(&timebase_handler);
 }
