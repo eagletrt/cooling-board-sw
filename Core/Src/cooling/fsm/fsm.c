@@ -23,14 +23,25 @@ Functions and types have been generated with prefix "fsm_"
 #include "post-api.h"
 #include "can-communication-api.h"
 #include "control-api.h"
+#include "identity-api.h"
+#include "bootloader-api.h"
 
 /* USER CODE END Includes */
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
+EAGLETRT_STATIC void prv_periodically_send(enum CanPrimaryCoolingfsmStatus status, uint32_t tick) {
+    identity_api_periodically_send_state(status, tick);
+    identity_api_periodically_send_version(tick);
+    identity_api_periodically_send_libcan_version(tick);
+}
+
 // GLOBALS
 // State human-readable names
-const char *fsm_state_names[] = { "init", "idle", "error", "flash" };
+const char *fsm_state_names[] = { "init",
+                                  "idle",
+                                  "error",
+                                  "flash" };
 
 // List of state functions
 state_func_t *const fsm_state_table[FSM_NUM_STATES] = {
@@ -81,6 +92,8 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
             next_state = FSM_NO_CHANGE;
     }
 
+    identity_api_send_state(CAN_PRIMARY_COOLINGFSM_STATUS_INIT);
+
     return next_state;
 }
 
@@ -89,7 +102,17 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
 fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
     /* Your Code Here */
-    EAGLETRT_API_UNUSED(data);
+    struct FsmData *fsm_idle_data = (struct FsmData *)data;
+
+    if (fsm_idle_data == nullptr ||
+        fsm_idle_data->get_tick == nullptr ||
+        fsm_idle_data->set_control == nullptr) {
+        next_state = FSM_STATE_ERROR;
+    }
+
+    if (bootloader_api_is_flashing()) {
+        next_state = FSM_STATE_FLASH;
+    }
 
     switch (next_state) {
         case FSM_NO_CHANGE:
@@ -101,16 +124,52 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
             next_state = FSM_NO_CHANGE;
     }
 
+    control_api_update_internal_status();
+
+    // hardware testing
+    /*
+    control_api_update_left_fan_output(0.7F);
+    control_api_update_left_pump_output(0.7F);
+    control_api_update_right_fan_output(0.7F);
+    control_api_update_right_pump_output(0.7F);
+    */
+
+    /*
+    fsm_idle_data->set_control(CONTROL_NAME_LEFT_FAN,
+                               control_api_get_output(CONTROL_NAME_LEFT_FAN, fsm_idle_data->get_tick()));
+    fsm_idle_data->set_control(CONTROL_NAME_LEFT_PUMP,
+                               control_api_get_output(CONTROL_NAME_LEFT_PUMP, fsm_idle_data->get_tick()));
+    fsm_idle_data->set_control(CONTROL_NAME_RIGHT_FAN,
+                               control_api_get_output(CONTROL_NAME_RIGHT_FAN, fsm_idle_data->get_tick()));
+    fsm_idle_data->set_control(CONTROL_NAME_RIGHT_PUMP,
+                               control_api_get_output(CONTROL_NAME_RIGHT_PUMP, fsm_idle_data->get_tick()));
+    */
+
+    fsm_idle_data->set_control(CONTROL_NAME_LEFT_FAN,
+                               control_api_get_output(CONTROL_NAME_LEFT_FAN));
+    fsm_idle_data->set_control(CONTROL_NAME_LEFT_PUMP,
+                               control_api_get_output(CONTROL_NAME_LEFT_PUMP));
+    fsm_idle_data->set_control(CONTROL_NAME_RIGHT_FAN,
+                               control_api_get_output(CONTROL_NAME_RIGHT_FAN));
+    fsm_idle_data->set_control(CONTROL_NAME_RIGHT_PUMP,
+                               control_api_get_output(CONTROL_NAME_RIGHT_PUMP));
+
+    // test usart tx
+    /*
+    usart_log("left pump control: %.2f\r\n", control_api_get_output(CONTROL_NAME_LEFT_PUMP));
+    usart_log("left fan control: %.2f\r\n", control_api_get_output(CONTROL_NAME_LEFT_FAN));
+    usart_log("right pump control: %.2f\r\n", control_api_get_output(CONTROL_NAME_RIGHT_PUMP));
+    usart_log("right fan control: %.2f\r\n", control_api_get_output(CONTROL_NAME_RIGHT_FAN));
+    */
+
+    // test can send
+    control_api_periodically_send_outputs(fsm_idle_data->get_tick());
+
+    prv_periodically_send(CAN_PRIMARY_COOLINGFSM_STATUS_IDLE, fsm_idle_data->get_tick());
+
     // TODO: add checks for return codes
     can_communication_api_process_tx(CAN_COMMUNICATION_NETWORK_PRIMARY);
     can_communication_api_process_rx(CAN_COMMUNICATION_NETWORK_PRIMARY);
-
-    control_api_update_internal_status();
-
-    control_api_update_left_fan_output(CONTROL_MODE_AUTOMATIC, 0.0f);
-    control_api_update_left_pump_output(CONTROL_MODE_AUTOMATIC, 0.0f);
-    control_api_update_right_fan_output(CONTROL_MODE_AUTOMATIC, 0.0f);
-    control_api_update_right_pump_output(CONTROL_MODE_AUTOMATIC, 0.0f);
 
     return next_state;
 }
@@ -140,6 +199,10 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
     /* Your Code Here */
     EAGLETRT_API_UNUSED(data);
 
+    if (bootloader_api_is_timedout()) {
+        next_state = FSM_STATE_IDLE;
+    }
+
     switch (next_state) {
         case FSM_NO_CHANGE:
         case FSM_STATE_IDLE:
@@ -149,6 +212,8 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
         default:
             next_state = FSM_NO_CHANGE;
     }
+
+    can_communication_api_process_rx(CAN_COMMUNICATION_NETWORK_PRIMARY);
 
     return next_state;
 }
@@ -185,6 +250,8 @@ void fsm_init_error(fsm_state_data_t *data) {
 void fsm_start_flash(fsm_state_data_t *data) {
     /* Your Code Here */
     EAGLETRT_API_UNUSED(data);
+
+    bootloader_api_watchdog_restart();
 }
 
 // This function is called in 2 transitions:
@@ -200,6 +267,8 @@ void fsm_error_detected(fsm_state_data_t *data) {
 void fsm_flash_done(fsm_state_data_t *data) {
     /* Your Code Here */
     EAGLETRT_API_UNUSED(data);
+
+    bootloader_api_set_flashing(false);
 }
 
 /*  ____  _        _

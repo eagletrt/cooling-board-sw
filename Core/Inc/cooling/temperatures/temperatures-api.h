@@ -40,10 +40,11 @@ float temperatures_api_get_temperature(enum TemperaturesName temperature_name);
 enum TemperaturesReturnCode temperatures_api_set_temperature(enum TemperaturesName temperature_name, float temperature_value);
 
 /*!
- * \brief Get the status of the temperatures
+ * \brief Get wheather the temperatures have been updated or not
  *
- * \return The status of the temperatures (whether they are updated or not) as a bool
+ * \retval true the temperatures have been updated
+ * \retval false the temperatures haven't been updated
  */
-bool temperatures_api_get_temperatures_status(void);
+bool temperatures_api_are_temperatures_updated(void);
 
 #endif // TEMPERATURES_API_H
